@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "tbpore"
+version = "0.1.0"
+description = "TB genomic analysis from Nanopore sequencing data"
+authors = ["Michael Hall <michael@mbh.sh>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/mbhall88/tbpore"
+repository = "https://github.com/mbhall88/tbpore"
+keywords = ["tuberculosis", "nanopore", "diagnostics", "genomics", "variant-calling", "resistance-prediction"]
+
+[tool.poetry.scripts]
+snakefmt = 'tbpore.tbpore:main'
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+click = "^8.0.3"
+
+[tool.poetry.dev-dependencies]
+black = "^21.11b1"
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
