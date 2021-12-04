@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 import click
 from loguru import logger
@@ -16,6 +17,14 @@ log_fmt = (
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
 @click.option(
+    "-o",
+    "--outdir",
+    help="Directory to place output files",
+    default=".",
+    show_default=True,
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+)
+@click.option(
     "-v",
     "--verbose",
     help="Turns on debug-level logger. ",
@@ -32,7 +41,7 @@ log_fmt = (
     not_required_if=["verbose"],
 )
 @click.pass_context
-def main(ctx: click.Context, verbose: bool, quiet: bool):
+def main(ctx: click.Context, verbose: bool, quiet: bool, outdir: Path):
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data"""
     log_lvl = "INFO"
     if verbose:
