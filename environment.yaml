@@ -1,0 +1,11 @@
+name: tbpore
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - mamba
+  - just=0.10
+  - ca-certificates
+  - certifi
+  - openssl
