@@ -5,7 +5,7 @@ from typing import Tuple
 import click
 from loguru import logger
 
-from tbpore import __version__
+from tbpore import __version__, TMP_NAME
 from tbpore.cli import Mutex
 
 log_fmt = (
@@ -44,6 +44,14 @@ log_fmt = (
 @click.option(
     "-r", "--recursive", help="Recursively search INPUT for fastq files", is_flag=True
 )
+@click.option(
+    "--tmp",
+    help=(
+        f"Specify where to write all (tbpore) temporary files. [default: "
+        f"<outdir>/{TMP_NAME}]"
+    ),
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+)
 @click.argument("input", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def main(
@@ -53,6 +61,7 @@ def main(
     outdir: Path,
     input: Tuple[Path, ...],
     recursive: bool,
+    tmp: Path,
 ):
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
 
@@ -69,6 +78,11 @@ def main(
     logger.add(sys.stderr, level=log_lvl, format=log_fmt)
     logger.info(f"Welcome to TBpore version {__version__}")
 
+    outdir.mkdir(exist_ok=True)
+    if tmp is None:
+        tmp = outdir / TMP_NAME
+    tmp.mkdir(exist_ok=True)
+    
     # todo: get full list of input files
 
 

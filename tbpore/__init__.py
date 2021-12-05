@@ -1,5 +1,7 @@
 import sys
 
+from tbpore.constants import *
+
 """
 Version has unique source in pyproject.toml.
 importlib fetches version from distribution metadata files
