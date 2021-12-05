@@ -42,7 +42,7 @@ log_fmt = (
     not_required_if=["verbose"],
 )
 @click.option(
-    "-r", "--recursive", help="Recursively search INPUT for fastq files", is_flag=True
+    "-r", "--recursive", help="Recursively search INPUTS for fastq files", is_flag=True
 )
 @click.option(
     "--tmp",
@@ -52,20 +52,29 @@ log_fmt = (
     ),
     type=click.Path(file_okay=False, writable=True, path_type=Path),
 )
-@click.argument("input", type=click.Path(exists=True, path_type=Path), nargs=-1)
+@click.option(
+    "-S",
+    "--name",
+    help=(
+        "Name of the sample. By default, will use the first INPUT file with any "
+        "extensions stripped"
+    ),
+)
+@click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def main(
     ctx: click.Context,
     verbose: bool,
     quiet: bool,
     outdir: Path,
-    input: Tuple[Path, ...],
+    inputs: Tuple[Path, ...],
     recursive: bool,
     tmp: Path,
+    name: str,
 ):
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
 
-    INPUT: Fastq file(s) and/or a directory containing fastq files. All files will
+    INPUTS: Fastq file(s) and/or a directory containing fastq files. All files will
     be joined into a single fastq file, so ensure thery're all part of the same
     sample/isolate.
     """
@@ -82,8 +91,17 @@ def main(
     if tmp is None:
         tmp = outdir / TMP_NAME
     tmp.mkdir(exist_ok=True)
-    
+
     # todo: get full list of input files
+    if not input:
+        logger.error("No INPUT files given")
+        ctx.exit(2)
+
+    if not name:
+        name = inputs[0].name.split(".")[0]
+        logger.debug(f"No sample name found; using {name}")
+
+    infile = tmp / f"{name}.fq.gz"
 
 
 if __name__ == "__main__":
