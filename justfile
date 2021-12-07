@@ -1,6 +1,6 @@
 PROJECT := "tbpore"
 OPEN := if os() == "macos" { "open" } else { "xdg-open" }
-VERSION := `poetry version | grep -oE '\d+\.\d+\.\d+'`
+VERSION := `poetry version | rg -o '\d+\.\d+\.\d+'`
 BOLD := `tput bold`
 NORM := `tput sgr0`
 

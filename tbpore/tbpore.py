@@ -1,3 +1,4 @@
+import shutil
 import sys
 from pathlib import Path
 from typing import Tuple
@@ -5,8 +6,9 @@ from typing import Tuple
 import click
 from loguru import logger
 
-from tbpore import __version__, TMP_NAME
+from tbpore import TMP_NAME, __version__
 from tbpore.cli import Mutex
+from tbpore.utils import find_fastq_files
 
 log_fmt = (
     "[<green>{time:YYYY-MM-DD HH:mm:ss}</green>] <level>{level: <8}</level> | "
@@ -102,6 +104,17 @@ def main(
         logger.debug(f"No sample name found; using {name}")
 
     infile = tmp / f"{name}.fq.gz"
+    if len(inputs) == 1:
+        shutil.copy2(inputs[0], infile)
+    else:
+        fq_files = []
+        for p in inputs:
+            if p.is_file():
+                fq_files.append(p)
+            else:
+                fq_files.append(find_fastq_files(p, recursive))
+
+        # todo: concatenate files
 
 
 if __name__ == "__main__":
