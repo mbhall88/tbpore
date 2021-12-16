@@ -11,3 +11,4 @@ dependencies:
   - certifi
   - openssl
   - ripgrep
+  - seqkit=2

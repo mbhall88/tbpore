@@ -1,6 +1,6 @@
 import sys
 
-from tbpore.constants import *
+from tbpore.constants import *  # noqa: F401,F403
 
 """
 Version has unique source in pyproject.toml.

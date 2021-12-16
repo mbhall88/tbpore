@@ -8,7 +8,7 @@ from loguru import logger
 
 from tbpore import TMP_NAME, __version__
 from tbpore.cli import Mutex
-from tbpore.utils import find_fastq_files
+from tbpore.utils import concatenate_fastqs, find_fastq_files
 
 log_fmt = (
     "[<green>{time:YYYY-MM-DD HH:mm:ss}</green>] <level>{level: <8}</level> | "
@@ -62,6 +62,13 @@ log_fmt = (
         "extensions stripped"
     ),
 )
+@click.option(
+    "--cleanup/--no-cleanup",
+    "-d/-D",
+    default=False,
+    show_default=True,
+    help="Remove all temporary files on *successful* completion",
+)
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def main(
@@ -73,6 +80,7 @@ def main(
     recursive: bool,
     tmp: Path,
     name: str,
+    cleanup: bool,
 ):
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
 
@@ -94,27 +102,36 @@ def main(
         tmp = outdir / TMP_NAME
     tmp.mkdir(exist_ok=True)
 
-    # todo: get full list of input files
-    if not input:
+    if not inputs:
         logger.error("No INPUT files given")
         ctx.exit(2)
 
     if not name:
         name = inputs[0].name.split(".")[0]
-        logger.debug(f"No sample name found; using {name}")
+        if not name:
+            name = "input"
+
+        logger.debug(f"No sample name found; using '{name}'")
 
     infile = tmp / f"{name}.fq.gz"
-    if len(inputs) == 1:
+    if len(inputs) == 1 and inputs[0].is_file():
         shutil.copy2(inputs[0], infile)
     else:
+        logger.info("Searching for fastq files...")
         fq_files = []
         for p in inputs:
             if p.is_file():
                 fq_files.append(p)
             else:
-                fq_files.append(find_fastq_files(p, recursive))
+                fq_files.extend(find_fastq_files(p, recursive))
+        logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
+        concatenate_fastqs(fq_files, infile)
 
-        # todo: concatenate files
+    if cleanup:
+        logger.info("Cleaning up temporary files...")
+        shutil.rmtree(tmp)
+
+    logger.success("Done")
 
 
 if __name__ == "__main__":
