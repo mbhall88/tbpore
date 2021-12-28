@@ -140,3 +140,6 @@ venv
 tmp_work
 .python-version
 tags
+
+# Project-specific files and directories
+tmp/
