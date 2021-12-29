@@ -31,8 +31,9 @@ jobs:
       - name:  Lint
         shell: bash -l {0}
         run:   just lint
-      - name: Test and generate coverage report with pytest
-        run:  just test-ci
+      - name:  Test and generate coverage report with pytest
+        shell: bash -l {0}
+        run:   just test-ci
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
