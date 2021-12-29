@@ -20,13 +20,14 @@ jobs:
           mamba-version:        "*"
           channels:             conda-forge,bioconda,defaults
           channel-priority:     strict
-          activate-environment: anaconda-client-env
+          activate-environment: tbpore
           environment-file:     environment.yaml
+          auto-update-conda:    true
       - name:  Install project
         shell: bash -l {0}
         run:   |
-          mamba install -qy python=${{ matrix.python-version }}
-          just install
+               mamba install -qy python=${{ matrix.python-version }}
+               just install
       - name:  Check formatting
         shell: bash -l {0}
         run:   just check-fmt
