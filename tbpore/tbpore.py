@@ -134,6 +134,13 @@ def main(
         logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
         concatenate_fastqs(fq_files, infile)
 
+    # todo: download the reference genomes from https://www.nature.com/articles/srep45258#Sec25 and https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0214088
+    # todo: remove contamination
+    # todo: run mykrobe
+    # todo: align decontam to h37rv
+    # todo: bcftools mpileup/call
+    # todo: filter vcf
+
     if cleanup:
         logger.info("Cleaning up temporary files...")
         shutil.rmtree(tmp)
