@@ -24,7 +24,9 @@ jobs:
           environment-file:     environment.yaml
       - name:  Install project
         shell: bash -l {0}
-        run:   just install
+        run:   |
+          mamba install -qy python=${{ matrix.python-version }}
+          just install
       - name:  Check formatting
         shell: bash -l {0}
         run:   just check-fmt
