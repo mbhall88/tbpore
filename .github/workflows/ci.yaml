@@ -1,0 +1,38 @@
+name: Python CI
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [ 3.8 ]
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version:       ${{ matrix.python-version }}
+          mamba-version:        "*"
+          channels:             conda-forge,bioconda,defaults
+          channel-priority:     strict
+          activate-environment: anaconda-client-env
+          environment-file:     environment.yaml
+      - name:  Install project
+        shell: bash -l {0}
+        run:   just install
+      - name:  Check formatting
+        shell: bash -l {0}
+        run:   just check-fmt
+      - name:  Lint
+        shell: bash -l {0}
+        run:   just lint
+      - name: Test and generate coverage report with pytest
+        run:  just test-ci
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file:             ./coverage.xml
+          flags:            unittests
+          fail_ci_if_error: false
