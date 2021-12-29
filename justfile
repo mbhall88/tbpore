@@ -23,8 +23,8 @@ install:
     poetry install
 
 # run all tests
-test:
-    poetry run pytest tests/
+test opts="":
+    poetry run pytest {{opts}} tests/
 
 # run tests with coverage report
 coverage:

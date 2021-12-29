@@ -1,3 +1,4 @@
+import gzip
 import shutil
 import sys
 from pathlib import Path
@@ -97,10 +98,10 @@ def main(
     logger.add(sys.stderr, level=log_lvl, format=log_fmt)
     logger.info(f"Welcome to TBpore version {__version__}")
 
-    outdir.mkdir(exist_ok=True)
+    outdir.mkdir(exist_ok=True, parents=True)
     if tmp is None:
         tmp = outdir / TMP_NAME
-    tmp.mkdir(exist_ok=True)
+    tmp.mkdir(exist_ok=True, parents=True)
 
     if not inputs:
         logger.error("No INPUT files given")
@@ -115,7 +116,13 @@ def main(
 
     infile = tmp / f"{name}.fq.gz"
     if len(inputs) == 1 and inputs[0].is_file():
-        shutil.copy2(inputs[0], infile)
+        if not inputs[0].suffix == ".gz":
+            with open(inputs[0], "rb") as f_in:
+                with gzip.open(infile, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+        else:
+            shutil.copy2(inputs[0], infile)
+
     else:
         logger.info("Searching for fastq files...")
         fq_files = []
