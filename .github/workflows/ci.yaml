@@ -2,6 +2,9 @@ name: Python CI
 
 on: [ push, pull_request ]
 
+env:
+  TERM: screen-256color
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
