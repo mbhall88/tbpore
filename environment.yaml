@@ -11,5 +11,4 @@ dependencies:
   - certifi
   - openssl
   - ripgrep
-  - seqkit=2
   - poetry=1.1
