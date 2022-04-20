@@ -182,12 +182,7 @@ def main(
         logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
         concatenate_fastqs(fq_files, infile)
 
-    # todo: download the reference genomes from https://www.nature.com/articles/srep45258#Sec25 and https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0214088
-    # todo: remove contamination
-    # todo: run mykrobe
-    # todo: align decontam to h37rv
-    # todo: bcftools mpileup/call
-    # todo: filter vcf
+    # TODO: refactor these tools into classes inheriting from ExternalTool?
     mykrobe = ExternalTool(
         tool="mykrobe",
         input=f"-i {infile}",
@@ -236,6 +231,8 @@ def main(
         output=f"-o {snps_file}",
         params=f"call --ploidy 1 -O b -V indels -m --threads {threads}"
     )
+
+    # todo: filter vcf
 
     tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call]
     for tool in tools_to_run:
