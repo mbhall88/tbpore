@@ -1,6 +1,6 @@
 import sys
 
-from tbpore import tbpore
+from tbpore import cli
 
 if __name__ == "__main__":
-    sys.exit(tbpore.main())
+    sys.exit(cli.main())
