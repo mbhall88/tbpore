@@ -144,3 +144,6 @@ tags
 
 # Project-specific files and directories
 tmp/
+/.tbpore/
+/sample_example/
+/logs/
