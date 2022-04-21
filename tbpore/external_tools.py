@@ -1,16 +1,15 @@
 import subprocess
 from typing import List
 import shlex
-import os
 from loguru import logger
 from pathlib import Path
 import hashlib
 
 
 class ExternalTool:
-    def __init__(self, tool: str, input: str, output: str, params: str, logdir: Path = Path("logs")):
+    def __init__(self, tool: str, input: str, output: str, params: str, logdir: Path):
         self.command: List[str] = self._build_command(tool, input, output, params)
-        os.makedirs(logdir, exist_ok=True)
+        logdir.mkdir(parents=True, exist_ok=True)
         command_hash = hashlib.sha256(self.command_as_str.encode("utf-8")).hexdigest()
         tool_name = Path(tool).name
         logfile_prefix: Path = logdir / f"{tool_name}_{command_hash}"

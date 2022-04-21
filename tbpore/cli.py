@@ -54,6 +54,7 @@ def load_config_file() -> Dict[Any, Any]:
     with open(config_file, "r") as config_file_fh:
         return yaml.safe_load(config_file_fh)
 
+
 @click.command()
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -109,6 +110,14 @@ def load_config_file() -> Dict[Any, Any]:
     default=1
 )
 @click.option(
+    "-l",
+    "--logdir",
+    help="Path to a directory to store the logs of external tools",
+    show_default=True,
+    default="logs",
+    type=click.Path(file_okay=False, writable=True, path_type=Path)
+)
+@click.option(
     "-A",
     "--report_all_mykrobe_calls",
     default=False,
@@ -134,6 +143,7 @@ def main(
     tmp: Path,
     name: str,
     threads: int,
+    logdir: Path,
     report_all_mykrobe_calls: bool,
     cleanup: bool,
 ):
@@ -198,7 +208,8 @@ def main(
         input=f"-i {infile}",
         output=f"-o {tmp}/{name}.mykrobe.json",
         params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
-               f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}"
+               f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
+        logdir=logdir
     )
 
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
@@ -206,7 +217,8 @@ def main(
         tool="rasusa",
         input=f"-i {infile}",
         output=f"-o {subsampled_reads}",
-        params=config['rasusa']['params']
+        params=config['rasusa']['params'],
+        logdir=logdir
     )
 
     sam_file = f"{tmp}/{name}.subsampled.sam"
@@ -214,7 +226,8 @@ def main(
         tool="minimap2",
         input=f"{H37RV_genome} {subsampled_reads}",
         output=f"-o {sam_file}",
-        params=f"-t {threads} {config['minimap2']['params']}"
+        params=f"-t {threads} {config['minimap2']['params']}",
+        logdir=logdir
     )
 
     sorted_sam_file = f"{tmp}/{name}.subsampled.sorted.sam"
@@ -222,7 +235,8 @@ def main(
         tool="samtools",
         input=sam_file,
         output=f"-o {sorted_sam_file}",
-        params=f"sort -@ {threads} {config['samtools']['sort']['params']}"
+        params=f"sort -@ {threads} {config['samtools']['sort']['params']}",
+        logdir=logdir
     )
 
     pileup_file = f"{tmp}/{name}.subsampled.pileup.bcf"
@@ -230,7 +244,8 @@ def main(
         tool="bcftools",
         input=sorted_sam_file,
         output=f"-o {pileup_file}",
-        params=f"mpileup -f {H37RV_genome} --threads {threads} {config['bcftools']['mpileup']['params']}"
+        params=f"mpileup -f {H37RV_genome} --threads {threads} {config['bcftools']['mpileup']['params']}",
+        logdir=logdir
     )
 
     snps_file = f"{tmp}/{name}.subsampled.snps.bcf"
@@ -238,7 +253,8 @@ def main(
         tool="bcftools",
         input=pileup_file,
         output=f"-o {snps_file}",
-        params=f"call --threads {threads} {config['bcftools']['call']['params']}"
+        params=f"call --threads {threads} {config['bcftools']['call']['params']}",
+        logdir=logdir
     )
 
     filtered_snps_file = f"{tmp}/{name}.subsampled.snps.filtered.bcf"
@@ -248,7 +264,8 @@ def main(
         tool=sys.executable,
         input=f"-i {snps_file}",
         output=f"-o {filtered_snps_file}",
-        params=f"{repo_root/'external_scripts/apply_filters.py'} {filtering_options}"
+        params=f"{repo_root/'external_scripts/apply_filters.py'} {filtering_options}",
+        logdir=logdir
     )
 
     consensus_file = f"{outdir}/{name}.consensus.fa"
@@ -256,7 +273,8 @@ def main(
         tool=sys.executable,
         input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
         output=f"-o {consensus_file}",
-        params=f"{repo_root/'external_scripts/consensus.py'} --sample-id {name} {config['consensus']['params']}"
+        params=f"{repo_root/'external_scripts/consensus.py'} --sample-id {name} {config['consensus']['params']}",
+        logdir=logdir
     )
 
     tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call, filter_vcf,
