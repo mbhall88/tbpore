@@ -1,7 +1,8 @@
 import click
 from loguru import logger
 
-from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir, repo_root, config_file, H37RV_mask
+from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir, repo_root, config_file, H37RV_mask,\
+    external_scripts_dir
 from tbpore.utils import concatenate_fastqs, find_fastq_files, parse_verbose_filter_params
 from tbpore.external_tools import ExternalTool
 
@@ -264,7 +265,7 @@ def main(
         tool=sys.executable,
         input=f"-i {snps_file}",
         output=f"-o {filtered_snps_file}",
-        params=f"{repo_root/'external_scripts/apply_filters.py'} {filtering_options}",
+        params=f"{external_scripts_dir/'apply_filters.py'} {filtering_options}",
         logdir=logdir
     )
 
@@ -273,7 +274,7 @@ def main(
         tool=sys.executable,
         input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
         output=f"-o {consensus_file}",
-        params=f"{repo_root/'external_scripts/consensus.py'} --sample-id {name} {config['consensus']['params']}",
+        params=f"{external_scripts_dir/'consensus.py'} --sample-id {name} {config['consensus']['params']}",
         logdir=logdir
     )
 
