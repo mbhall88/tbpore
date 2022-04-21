@@ -109,14 +109,6 @@ def load_config_file() -> Dict[Any, Any]:
     default=1
 )
 @click.option(
-    "-m",
-    "--mem_mb",
-    help="Memory to use in tools that accept a memory limit",
-    type=int,
-    show_default=True,
-    default=8*1024  # 8 GB
-)
-@click.option(
     "-A",
     "--report_all_mykrobe_calls",
     default=False,
@@ -142,7 +134,6 @@ def main(
     tmp: Path,
     name: str,
     threads: int,
-    mem_mb: int,
     report_all_mykrobe_calls: bool,
     cleanup: bool,
 ):
