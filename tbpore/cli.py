@@ -2,7 +2,7 @@ import click
 from loguru import logger
 
 from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir, repo_root, config_file, H37RV_mask
-from tbpore.utils import concatenate_fastqs, find_fastq_files
+from tbpore.utils import concatenate_fastqs, find_fastq_files, parse_verbose_filter_params
 from tbpore.external_tools import ExternalTool
 
 import gzip
@@ -197,9 +197,8 @@ def main(
         tool="mykrobe",
         input=f"-i {infile}",
         output=f"-o {tmp}/{name}.mykrobe.json",
-        params=f"predict {report_all_mykrobe_calls_param} -e 0.08 --ploidy haploid --force --format json "
-               f"--min_proportion_expected_depth 0.20 --sample {name} --species tb -t {threads} -m {mem_mb}MB "
-               f"--tmp {tmp} --skeleton_dir {cache_dir}"
+        params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
+               f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}"
     )
 
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
@@ -207,7 +206,7 @@ def main(
         tool="rasusa",
         input=f"-i {infile}",
         output=f"-o {subsampled_reads}",
-        params=f"-c 150 -g 4411532 -s 88"
+        params=config['rasusa']['params']
     )
 
     sam_file = f"{tmp}/{name}.subsampled.sam"
@@ -215,7 +214,7 @@ def main(
         tool="minimap2",
         input=f"{H37RV_genome} {subsampled_reads}",
         output=f"-o {sam_file}",
-        params=f"-a -L --sam-hit-only --secondary=no -x map-ont -t {threads}"
+        params=f"-t {threads} {config['minimap2']['params']}"
     )
 
     sorted_sam_file = f"{tmp}/{name}.subsampled.sorted.sam"
@@ -223,7 +222,7 @@ def main(
         tool="samtools",
         input=sam_file,
         output=f"-o {sorted_sam_file}",
-        params=f"sort -@ {threads}"
+        params=f"sort -@ {threads} {config['samtools']['sort']['params']}"
     )
 
     pileup_file = f"{tmp}/{name}.subsampled.pileup.bcf"
@@ -231,8 +230,7 @@ def main(
         tool="bcftools",
         input=sorted_sam_file,
         output=f"-o {pileup_file}",
-        params=f"mpileup -x -O b -I -Q 13 -a 'INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF' -h100 -M10000 -f {H37RV_genome} "
-               f"--threads {threads}"
+        params=f"mpileup -f {H37RV_genome} --threads {threads} {config['bcftools']['mpileup']['params']}"
     )
 
     snps_file = f"{tmp}/{name}.subsampled.snps.bcf"
@@ -240,34 +238,12 @@ def main(
         tool="bcftools",
         input=pileup_file,
         output=f"-o {snps_file}",
-        params=f"call --ploidy 1 -O b -V indels -m --threads {threads}"
+        params=f"call --threads {threads} {config['bcftools']['call']['params']}"
     )
 
     filtered_snps_file = f"{tmp}/{name}.subsampled.snps.filtered.bcf"
-    def bcftools_filter_opts(filters_dict: Dict[Any, Any]) -> str:
-        opts = [
-            ("d", "min_depth"),
-            ("D", "max_depth"),
-            ("q", "min_qual"),
-            ("s", "min_strand_bias"),
-            ("b", "min_bqb"),
-            ("m", "min_mqb"),
-            ("r", "min_rpb"),
-            ("V", "min_vdb"),
-            ("G", "max_sgb"),
-            ("K", "min_frs"),
-            ("w", "min_rpbz"),
-            ("W", "max_rpbz"),
-            ("C", "max_scbz"),
-            ("M", "min_mq"),
-            ("x", "min_fed"),
-        ]
-        flags = []
-        for op, key in opts:
-            if key in filters_dict:
-                flags.append(f"-{op} {filters_dict[key]}")
-        return " ".join(flags)
-    filtering_options = " ".join(["-P", "--verbose", "--overwrite", bcftools_filter_opts(config["bcftools"]["filters"])])
+    filtering_options = " ".join((
+        config['filter']['params'], parse_verbose_filter_params(config["filter"]["verbose_params"])))
     filter_vcf = ExternalTool(
         tool=sys.executable,
         input=f"-i {snps_file}",
@@ -280,8 +256,7 @@ def main(
         tool=sys.executable,
         input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
         output=f"-o {consensus_file}",
-        params=f"{repo_root/'external_scripts/consensus.py'} --verbose --ignore all --sample-id {name} "
-               f"--het-default none"
+        params=f"{repo_root/'external_scripts/consensus.py'} --sample-id {name} {config['consensus']['params']}"
     )
 
     tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call, filter_vcf,
