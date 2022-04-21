@@ -3,7 +3,7 @@ import glob
 import gzip
 import re
 from pathlib import Path
-from typing import IO, List, Sequence, Union
+from typing import IO, List, Sequence, Union, Dict, Any
 
 FASTQ_REGEX = re.compile(r"\.f(ast)?q(\.gz)?$")
 PathLike = Union[str, Path]
@@ -30,3 +30,28 @@ def concatenate_fastqs(files: Sequence[PathLike], dest: PathLike):
         for line in fin:
             if line.rstrip():  # skip empty lines
                 fout.write(line)
+
+
+def parse_verbose_filter_params(filters_dict: Dict[Any, Any]) -> str:
+    opts = [
+        ("d", "min_depth"),
+        ("D", "max_depth"),
+        ("q", "min_qual"),
+        ("s", "min_strand_bias"),
+        ("b", "min_bqb"),
+        ("m", "min_mqb"),
+        ("r", "min_rpb"),
+        ("V", "min_vdb"),
+        ("G", "max_sgb"),
+        ("K", "min_frs"),
+        ("w", "min_rpbz"),
+        ("W", "max_rpbz"),
+        ("C", "max_scbz"),
+        ("M", "min_mq"),
+        ("x", "min_fed"),
+    ]
+    flags = []
+    for op, key in opts:
+        if key in filters_dict:
+            flags.append(f"-{op} {filters_dict[key]}")
+    return " ".join(flags)
