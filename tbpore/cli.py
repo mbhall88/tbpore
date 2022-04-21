@@ -1,7 +1,7 @@
 import click
 from loguru import logger
 
-from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir
+from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir, repo_root, config_file, H37RV_mask
 from tbpore.utils import concatenate_fastqs, find_fastq_files
 from tbpore.external_tools import ExternalTool
 
@@ -9,8 +9,9 @@ import gzip
 import shutil
 import sys
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict, Any
 import subprocess
+import yaml
 
 
 log_fmt = (
@@ -48,6 +49,10 @@ class Mutex(click.Option):
                     self.prompt = None
         return super(Mutex, self).handle_parse_result(ctx, opts, args)
 
+
+def load_config_file() -> Dict[Any, Any]:
+    with open(config_file, "r") as config_file_fh:
+        return yaml.safe_load(config_file_fh)
 
 @click.command()
 @click.help_option("--help", "-h")
@@ -147,6 +152,8 @@ def main(
     be joined into a single fastq file, so ensure thery're all part of the same
     sample/isolate.
     """
+    config = load_config_file()
+
     log_lvl = "INFO"
     if verbose:
         log_lvl = "DEBUG"
@@ -245,9 +252,49 @@ def main(
         params=f"call --ploidy 1 -O b -V indels -m --threads {threads}"
     )
 
-    # todo: filter vcf
+    filtered_snps_file = f"{tmp}/{name}.subsampled.snps.filtered.bcf"
+    def bcftools_filter_opts(filters_dict: Dict[Any, Any]) -> str:
+        opts = [
+            ("d", "min_depth"),
+            ("D", "max_depth"),
+            ("q", "min_qual"),
+            ("s", "min_strand_bias"),
+            ("b", "min_bqb"),
+            ("m", "min_mqb"),
+            ("r", "min_rpb"),
+            ("V", "min_vdb"),
+            ("G", "max_sgb"),
+            ("K", "min_frs"),
+            ("w", "min_rpbz"),
+            ("W", "max_rpbz"),
+            ("C", "max_scbz"),
+            ("M", "min_mq"),
+            ("x", "min_fed"),
+        ]
+        flags = []
+        for op, key in opts:
+            if key in filters_dict:
+                flags.append(f"-{op} {filters_dict[key]}")
+        return " ".join(flags)
+    filtering_options = " ".join(["-P", "--verbose", "--overwrite", bcftools_filter_opts(config["bcftools"]["filters"])])
+    filter_vcf = ExternalTool(
+        tool=sys.executable,
+        input=f"-i {snps_file}",
+        output=f"-o {filtered_snps_file}",
+        params=f"{repo_root/'external_scripts/apply_filters.py'} {filtering_options}"
+    )
 
-    tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call]
+    consensus_file = f"{outdir}/{name}.consensus.fa"
+    generate_consensus = ExternalTool(
+        tool=sys.executable,
+        input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
+        output=f"-o {consensus_file}",
+        params=f"{repo_root/'external_scripts/consensus.py'} --verbose --ignore all --sample-id {name} "
+               f"--het-default none"
+    )
+
+    tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call, filter_vcf,
+                    generate_consensus]
     for tool in tools_to_run:
         try:
             tool.run()

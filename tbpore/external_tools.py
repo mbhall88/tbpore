@@ -12,7 +12,8 @@ class ExternalTool:
         self.command: List[str] = self._build_command(tool, input, output, params)
         os.makedirs(logdir, exist_ok=True)
         command_hash = hashlib.sha256(self.command_as_str.encode("utf-8")).hexdigest()
-        logfile_prefix: Path = logdir / f"{tool}_{command_hash}"
+        tool_name = Path(tool).name
+        logfile_prefix: Path = logdir / f"{tool_name}_{command_hash}"
         self.out_log = f"{logfile_prefix}.out"
         self.err_log = f"{logfile_prefix}.err"
 
