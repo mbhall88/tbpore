@@ -31,5 +31,9 @@ class ExternalTool:
     def run(self) -> None:
         with open(self.out_log, "w") as stdout_fh, open(self.err_log, "w") as stderr_fh:
             logger.info(f"Started running {self.command_as_str} ...")
-            subprocess.check_call(self.command, stdout=stdout_fh, stderr=stderr_fh)
+            self._run_core(self.command, stdout_fh=stdout_fh, stderr_fh=stderr_fh)
             logger.info(f"Done running {self.command_as_str}")
+
+    @staticmethod
+    def _run_core(command: List[str], stdout_fh, stderr_fh) -> None:
+        subprocess.check_call(command, stdout=stdout_fh, stderr=stderr_fh)
