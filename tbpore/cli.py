@@ -1,7 +1,7 @@
 import click
 from loguru import logger
 
-from tbpore import __version__, TMP_NAME, H37RV_genome
+from tbpore import __version__, TMP_NAME, H37RV_genome, cache_dir
 from tbpore.utils import concatenate_fastqs, find_fastq_files
 from tbpore.external_tools import ExternalTool
 
@@ -193,6 +193,7 @@ def main(
         concatenate_fastqs(fq_files, infile)
 
     # TODO: refactor these tools into classes inheriting from ExternalTool?
+    cache_dir.mkdir(parents=True, exist_ok=True)
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe = ExternalTool(
         tool="mykrobe",
@@ -200,7 +201,7 @@ def main(
         output=f"-o {tmp}/{name}.mykrobe.json",
         params=f"predict {report_all_mykrobe_calls_param} -e 0.08 --ploidy haploid --force --format json "
                f"--min_proportion_expected_depth 0.20 --sample {name} --species tb -t {threads} -m {mem_mb}MB "
-               f"--tmp {tmp} --skeleton_dir {tmp}"
+               f"--tmp {tmp} --skeleton_dir {cache_dir}"
     )
 
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
