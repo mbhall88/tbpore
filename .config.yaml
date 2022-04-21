@@ -1,0 +1,42 @@
+# tbpore external tools parameters config file
+# DO NOT EDIT - parameters that should be changed by users are listed in the program options
+# these are parameters that are passive to be changed, so they are listed here
+
+mykrobe:
+  predict:
+    params: "-e 0.08 --ploidy haploid --force --format json --min_proportion_expected_depth 0.20 --species tb -m 8192MB"
+
+rasusa:
+  params: "-c 150 -g 4411532 -s 88"
+
+minimap2:
+  params: "-a -L --sam-hit-only --secondary=no -x map-ont"
+
+samtools:
+  sort:
+    params: ""
+
+bcftools:
+  mpileup:
+    params: "-x -O b -I -Q 13 -a 'INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF' -h100 -M10000"
+  call:
+    params: "--ploidy 1 -O b -V indels -m"
+
+filter:
+  params: "-P --verbose --overwrite"
+  verbose_params:
+    min_depth:       0
+    min_fed:         0.2
+    max_depth:       0
+    min_qual:        85
+    min_strand_bias: 1
+    min_bqb:         0
+    min_mqb:         0
+    min_rpb:         0
+    max_sgb:         0
+    min_vdb:         0.00001
+    min_mq:          0
+    min_frs:         0.90
+
+consensus:
+  params: "--verbose --ignore all --het-default none"
