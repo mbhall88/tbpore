@@ -1,14 +1,21 @@
 """Integration tests"""
 import gzip
-from pathlib import Path
+import sys
 
 from click.testing import CliRunner
+from unittest.mock import patch
+
+from tbpore.constants import *
+from tbpore.cli import main
+from tbpore.external_tools import ExternalTool
+
 
 from tbpore.tbpore import TMP_NAME, main
 
 
+@patch.object(ExternalTool, ExternalTool._run_core.__name__)
 class TestCLICleanup:
-    def test_no_cleanup(self, tmp_path):
+    def test_no_cleanup(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["--no-cleanup", "-S", sample]
         runner = CliRunner()
@@ -25,7 +32,7 @@ class TestCLICleanup:
             tbpore_tmp = td / TMP_NAME
             assert tbpore_tmp.exists()
 
-    def test_with_cleanup(self, tmp_path):
+    def test_with_cleanup(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["--cleanup", "-S", sample]
         runner = CliRunner()
@@ -43,8 +50,9 @@ class TestCLICleanup:
             assert not tbpore_tmp.exists()
 
 
+@patch.object(ExternalTool, ExternalTool._run_core.__name__)
 class TestInputConcatenation:
-    def test_single_file(self, tmp_path):
+    def test_single_file(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -65,7 +73,7 @@ class TestInputConcatenation:
                 actual = fp.read()
             assert actual == expected_fq
 
-    def test_multiple_files(self, tmp_path):
+    def test_multiple_files(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -92,7 +100,7 @@ class TestInputConcatenation:
             expected = expected_fq1 + expected_fq2
             assert sorted(actual) == sorted(expected)
 
-    def test_input_is_dir(self, tmp_path):
+    def test_input_is_dir(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -119,7 +127,7 @@ class TestInputConcatenation:
             expected = expected_fq1 + expected_fq2
             assert sorted(actual) == sorted(expected)
 
-    def test_input_is_dir_and_one_file_has_bad_suffix(self, tmp_path):
+    def test_input_is_dir_and_one_file_has_bad_suffix(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
