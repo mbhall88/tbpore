@@ -100,6 +100,7 @@ class Mutex(click.Option):
     "--threads",
     help="Number of threads to use in multithreaded tools",
     type=int,
+    show_default=True,
     default=1
 )
 @click.option(
@@ -107,7 +108,15 @@ class Mutex(click.Option):
     "--mem_mb",
     help="Memory to use in tools that accept a memory limit",
     type=int,
+    show_default=True,
     default=8*1024  # 8 GB
+)
+@click.option(
+    "-A",
+    "--report_all_mykrobe_calls",
+    default=False,
+    show_default=True,
+    help="Report all mykrobe calls (turn on flag -A, --report_all_calls when calling mykrobe)",
 )
 @click.option(
     "--cleanup/--no-cleanup",
@@ -129,6 +138,7 @@ def main(
     name: str,
     threads: int,
     mem_mb: int,
+    report_all_mykrobe_calls: bool,
     cleanup: bool,
 ):
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
@@ -183,11 +193,12 @@ def main(
         concatenate_fastqs(fq_files, infile)
 
     # TODO: refactor these tools into classes inheriting from ExternalTool?
+    report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe = ExternalTool(
         tool="mykrobe",
         input=f"-i {infile}",
         output=f"-o {tmp}/{name}.mykrobe.json",
-        params=f"predict -e 0.08 --ploidy haploid --force -A --format json "
+        params=f"predict {report_all_mykrobe_calls_param} -e 0.08 --ploidy haploid --force --format json "
                f"--min_proportion_expected_depth 0.20 --sample {name} --species tb -t {threads} -m {mem_mb}MB "
                f"--tmp {tmp} --skeleton_dir {tmp}"
     )
