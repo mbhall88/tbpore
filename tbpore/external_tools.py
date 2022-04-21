@@ -11,17 +11,19 @@ class ExternalTool:
     def __init__(self, tool: str, input: str, output: str, params: str, logdir: Path = Path("logs")):
         self.command: List[str] = self._build_command(tool, input, output, params)
         os.makedirs(logdir, exist_ok=True)
-        command_hash = hashlib.sha256(" ".join(self.command).encode("utf-8")).hexdigest()
+        command_hash = hashlib.sha256(self.command_as_str.encode("utf-8")).hexdigest()
         logfile_prefix: Path = logdir / f"{tool}_{command_hash}"
         self.out_log = f"{logfile_prefix}.out"
         self.err_log = f"{logfile_prefix}.err"
 
     @property
     def command_as_str(self) -> str:
-        return " ".join(self.command)
+        return shlex.join(self.command)
 
     @staticmethod
     def _build_command(tool: str, input: str, output: str, params: str) -> List[str]:
+        # note: shlex.join does not allow us to shlex.split() later
+        # this is explicitly a " ".join()
         command = " ".join([tool, params, output, input])
         escaped_command = shlex.split(command)
         return escaped_command
