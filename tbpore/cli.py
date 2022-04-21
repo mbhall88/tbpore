@@ -187,8 +187,9 @@ def main(
         tool="mykrobe",
         input=f"-i {infile}",
         output=f"-o {tmp}/{name}.mykrobe.json",
-        params=f"predict --ont --force -A --debug --format json --min_proportion_expected_depth 0.20 --sample {name} "
-               f"--species tb -t {threads} -m {mem_mb}MB --tmp {tmp} --skeleton_dir {tmp}"
+        params=f"predict -e 0.08 --ploidy haploid --force -A --format json "
+               f"--min_proportion_expected_depth 0.20 --sample {name} --species tb -t {threads} -m {mem_mb}MB "
+               f"--tmp {tmp} --skeleton_dir {tmp}"
     )
 
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
