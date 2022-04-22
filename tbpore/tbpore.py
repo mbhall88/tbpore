@@ -249,7 +249,7 @@ def main(
         try:
             tool.run()
         except subprocess.CalledProcessError as error:
-            logger.error(f"Error calling {tool.command} (return code {error.returncode})")
+            logger.error(f"Error calling {tool.command_as_str} (return code {error.returncode})")
             logger.error(f"Please check stdout log file: {tool.out_log}")
             logger.error(f"Please check stderr log file: {tool.err_log}")
             logger.error(f"Temporary files are preserved for debugging")
