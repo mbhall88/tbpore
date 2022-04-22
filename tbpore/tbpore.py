@@ -26,6 +26,26 @@ def load_config_file() -> Dict[Any, Any]:
         return yaml.safe_load(config_file_fh)
 
 
+def concatenate_inputs_into_infile(inputs: Tuple[Path, ...], infile: Path, recursive: bool) -> None:
+    if len(inputs) == 1 and inputs[0].is_file():
+        if not inputs[0].suffix == ".gz":
+            with open(inputs[0], "rb") as f_in:
+                with gzip.open(infile, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+        else:
+            shutil.copy2(inputs[0], infile)
+    else:
+        logger.info("Searching for fastq files...")
+        fq_files = []
+        for p in inputs:
+            if p.is_file():
+                fq_files.append(p)
+            else:
+                fq_files.extend(find_fastq_files(p, recursive))
+        logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
+        concatenate_fastqs(fq_files, infile)
+
+
 @click.command()
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -140,28 +160,10 @@ def main(
         name = inputs[0].name.split(".")[0]
         if not name:
             name = "input"
-
         logger.debug(f"No sample name found; using '{name}'")
 
     infile = tmp / f"{name}.fq.gz"
-    if len(inputs) == 1 and inputs[0].is_file():
-        if not inputs[0].suffix == ".gz":
-            with open(inputs[0], "rb") as f_in:
-                with gzip.open(infile, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-        else:
-            shutil.copy2(inputs[0], infile)
-
-    else:
-        logger.info("Searching for fastq files...")
-        fq_files = []
-        for p in inputs:
-            if p.is_file():
-                fq_files.append(p)
-            else:
-                fq_files.extend(find_fastq_files(p, recursive))
-        logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
-        concatenate_fastqs(fq_files, infile)
+    concatenate_inputs_into_infile(inputs, infile, recursive)
 
     logdir = outdir/"logs"
     cache_dir.mkdir(parents=True, exist_ok=True)
