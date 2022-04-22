@@ -2,6 +2,7 @@
 import gzip
 import sys
 from pathlib import Path
+import subprocess
 
 from click.testing import CliRunner
 from unittest.mock import patch
@@ -10,12 +11,12 @@ from tbpore.tbpore import TMP_NAME, main, cache_dir, H37RV_genome, H37RV_mask, e
 from tbpore.external_tools import ExternalTool
 
 
-@patch.object(ExternalTool, ExternalTool._run_core.__name__)
-class TestCLIExecution:
+class TestExternalToolsExecution:
     @staticmethod
     def get_command_line_from_mock(mock, index):
         return " ".join(mock.call_args_list[index].args[0])
 
+    @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___minimum_params___check_all_external_tools_are_called_correctly(
             self, run_core_mock, tmp_path):
         runner = CliRunner()
@@ -24,8 +25,10 @@ class TestCLIExecution:
             infile = td / "in.fq"
             with open(infile, "w") as fp:
                 fp.write("@r1\nACGT\n+$$$%\n")
-            opts = [str(infile)]
+            opts = [str(infile), "-o", str(td)]
             result = runner.invoke(main, opts)
+
+            # check tbpore ran fine
             assert result.exit_code == 0
 
             # ensure all tools were called in the correct order and with the correct parameters
@@ -33,45 +36,146 @@ class TestCLIExecution:
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
             assert mykrobe_cl == \
-                   f"mykrobe predict --sample in -t 1 --tmp tbpore_out/.tbpore --skeleton_dir {cache_dir} -e 0.08 " \
+                   f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 " \
                    f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb " \
-                   f"-m 2048MB -o tbpore_out/in.mykrobe.json -i tbpore_out/.tbpore/in.fq.gz"
+                   f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
 
             rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
             assert rasusa_cl == \
-                   f"rasusa -c 150 -g 4411532 -s 88 -o tbpore_out/.tbpore/in.subsampled.fastq.gz -i tbpore_out/.tbpore/in.fq.gz"
+                   f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.fq.gz"
 
             minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
             assert minimap2_cl == \
-                   f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o tbpore_out/.tbpore/in.subsampled.sam " \
-                   f"{H37RV_genome} tbpore_out/.tbpore/in.subsampled.fastq.gz"
+                   f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.subsampled.sam " \
+                   f"{H37RV_genome} {td}/{TMP_NAME}/in.subsampled.fastq.gz"
 
             samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 3)
             assert samtools_sort_cl == \
-                   f"samtools sort -@ 1 -o tbpore_out/.tbpore/in.subsampled.sorted.sam tbpore_out/.tbpore/in.subsampled.sam"
+                   f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.subsampled.sorted.sam {td}/{TMP_NAME}/in.subsampled.sam"
 
             bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 4)
             assert bcftools_mpileup_cl == \
-                   f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -O b -I -Q 13 " \
-                   f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o tbpore_out/.tbpore/in.subsampled.pileup.vcf " \
-                   f"tbpore_out/.tbpore/in.subsampled.sorted.sam"
+                   f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -I -Q 13 " \
+                   f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/{TMP_NAME}/in.subsampled.pileup.vcf " \
+                   f"{td}/{TMP_NAME}/in.subsampled.sorted.sam"
 
             bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 5)
             assert bcftools_call_cl == \
-                   f"bcftools call --threads 1 --ploidy 1 -O b -V indels -m -o tbpore_out/.tbpore/in.subsampled.snps.vcf " \
-                   f"tbpore_out/.tbpore/in.subsampled.pileup.vcf"
+                   f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.subsampled.snps.vcf " \
+                   f"{td}/{TMP_NAME}/in.subsampled.pileup.vcf"
 
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert filter_vcf_cl == \
                    f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 " \
                    f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 " \
-                   f"-o tbpore_out/in.subsampled.snps.filtered.vcf -i tbpore_out/.tbpore/in.subsampled.snps.vcf"
+                   f"-o {td}/in.subsampled.snps.filtered.vcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert generate_consensus_cl == \
                    f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id in --verbose --ignore all " \
-                   f"--het-default none -o tbpore_out/in.consensus.fa -i tbpore_out/in.subsampled.snps.filtered.vcf " \
+                   f"--het-default none -o {td}/in.consensus.fa -i {td}/in.subsampled.snps.filtered.vcf " \
                    f"-f {H37RV_genome} -m {H37RV_mask}"
+
+    @patch.object(ExternalTool, ExternalTool._run_core.__name__)
+    def test_whole_execution___several_params_affecting_tools_command_lines___check_all_external_tools_are_called_correctly(
+            self, run_core_mock, tmp_path):
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile = td / "in.fq"
+            with open(infile, "w") as fp:
+                fp.write("@r1\nACGT\n+$$$%\n")
+            opts = [str(infile), "-o", str(td), "--tmp", str(td/"custom_tmp"), "--name", "custom_name", "--threads", "8",
+                    "--report_all_mykrobe_calls"]
+            result = runner.invoke(main, opts)
+
+            # check tbpore ran fine
+            assert result.exit_code == 0
+
+            # ensure all tools were called in the correct order and with the correct parameters
+            assert run_core_mock.call_count == 8
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
+            assert mykrobe_cl == \
+                   f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} -e 0.08 " \
+                   f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb " \
+                   f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.fq.gz"
+
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
+            assert rasusa_cl == \
+                   f"rasusa -c 150 -g 4411532 -s 88 -o {td}/custom_tmp/custom_name.subsampled.fastq.gz " \
+                   f"-i {td}/custom_tmp/custom_name.fq.gz"
+
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
+            assert minimap2_cl == \
+                   f"minimap2 -t 8 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/custom_tmp/custom_name.subsampled.sam " \
+                   f"{H37RV_genome} {td}/custom_tmp/custom_name.subsampled.fastq.gz"
+
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 3)
+            assert samtools_sort_cl == \
+                   f"samtools sort -@ 8 -o {td}/custom_tmp/custom_name.subsampled.sorted.sam {td}/custom_tmp/custom_name.subsampled.sam"
+
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 4)
+            assert bcftools_mpileup_cl == \
+                   f"bcftools mpileup -f {H37RV_genome} --threads 8 -x -I -Q 13 " \
+                   f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/custom_tmp/custom_name.subsampled.pileup.vcf " \
+                   f"{td}/custom_tmp/custom_name.subsampled.sorted.sam"
+
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            assert bcftools_call_cl == \
+                   f"bcftools call --threads 8 --ploidy 1 -V indels -m -o {td}/custom_tmp/custom_name.subsampled.snps.vcf " \
+                   f"{td}/custom_tmp/custom_name.subsampled.pileup.vcf"
+
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 6)
+            assert filter_vcf_cl == \
+                   f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 " \
+                   f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 " \
+                   f"-o {td}/custom_name.subsampled.snps.filtered.vcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
+
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert generate_consensus_cl == \
+                   f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id custom_name --verbose --ignore all " \
+                   f"--het-default none -o {td}/custom_name.consensus.fa -i {td}/custom_name.subsampled.snps.filtered.vcf " \
+                   f"-f {H37RV_genome} -m {H37RV_mask}"
+
+    @patch.object(ExternalTool, ExternalTool._run_core.__name__,
+                  side_effect=["", "", subprocess.CalledProcessError(1, "minimap2")])
+    def test_partial_execution___minimum_params___minimap2_fails___checks_fail_happens_and_previous_tools_called_correctly(
+            self, run_core_mock, tmp_path):
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile = td / "in.fq"
+            with open(infile, "w") as fp:
+                fp.write("@r1\nACGT\n+$$$%\n")
+            opts = [str(infile), "--cleanup", "-o", str(td)]  # asks for cleanup, but it should not cleanup as this is a run that fails
+            result = runner.invoke(main, opts)
+
+            # check if tbpore indeed failed
+            assert result.exit_code == 1
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
+            assert b"Error calling "+minimap2_cl.encode("utf-8")+b" (return code 1)" in result.stdout_bytes
+
+            # check if all tools until minimap2 were called correctly
+            assert run_core_mock.call_count == 3
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
+            assert mykrobe_cl == \
+                   f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 " \
+                   f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb " \
+                   f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
+
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
+            assert rasusa_cl == \
+                   f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.fq.gz"
+
+            assert minimap2_cl == \
+                   f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.subsampled.sam " \
+                   f"{H37RV_genome} {td}/{TMP_NAME}/in.subsampled.fastq.gz"
+
+            # check if tmp not removed
+            tbpore_tmp = td / TMP_NAME
+            assert tbpore_tmp.exists()
 
 
 @patch.object(ExternalTool, ExternalTool._run_core.__name__)
@@ -113,6 +217,13 @@ class TestCLICleanup:
 
 @patch.object(ExternalTool, ExternalTool._run_core.__name__)
 class TestInputConcatenation:
+    def test_no_input___fails(self, run_core_mock, tmp_path):
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            result = runner.invoke(main, [])
+            assert result.exit_code == 2
+            assert b"No INPUT files given" in result.stdout_bytes
+
     def test_single_file(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
@@ -123,6 +234,27 @@ class TestInputConcatenation:
             infile = td / "in.fq"
             with open(infile, "w") as fp:
                 fp.write(expected_fq)
+
+            opts.extend(["-o", str(td)])
+            opts.extend([str(infile)])
+            result = runner.invoke(main, opts)
+            assert result.exit_code == 0
+            tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
+            assert tbpore_concat.exists()
+            with gzip.open(tbpore_concat, mode="rt") as fp:
+                actual = fp.read()
+            assert actual == expected_fq
+
+    def test_single_gz_file(self, run_core_mock, tmp_path):
+        sample = "sam"
+        opts = ["-D", "-S", sample]
+        runner = CliRunner()
+        expected_fq = "@r1\nACGT\n+$$$%\n"
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile = td / "in.fastq.gz"
+            with gzip.open(infile, "wb") as fp:
+                fp.write(expected_fq.encode())
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile)])
