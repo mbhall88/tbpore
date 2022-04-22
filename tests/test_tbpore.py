@@ -33,44 +33,44 @@ class TestCLIExecution:
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
             assert mykrobe_cl == \
-                   f"mykrobe predict --sample in -t 1 --tmp .tbpore --skeleton_dir {cache_dir} -e 0.08 " \
+                   f"mykrobe predict --sample in -t 1 --tmp tbpore_out/.tbpore --skeleton_dir {cache_dir} -e 0.08 " \
                    f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb " \
-                   f"-m 2048MB -o .tbpore/in.mykrobe.json -i .tbpore/in.fq.gz"
+                   f"-m 2048MB -o tbpore_out/in.mykrobe.json -i tbpore_out/.tbpore/in.fq.gz"
 
             rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
             assert rasusa_cl == \
-                   f"rasusa -c 150 -g 4411532 -s 88 -o .tbpore/in.subsampled.fastq.gz -i .tbpore/in.fq.gz"
+                   f"rasusa -c 150 -g 4411532 -s 88 -o tbpore_out/.tbpore/in.subsampled.fastq.gz -i tbpore_out/.tbpore/in.fq.gz"
 
             minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
             assert minimap2_cl == \
-                   f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o .tbpore/in.subsampled.sam " \
-                   f"{H37RV_genome} .tbpore/in.subsampled.fastq.gz"
+                   f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o tbpore_out/.tbpore/in.subsampled.sam " \
+                   f"{H37RV_genome} tbpore_out/.tbpore/in.subsampled.fastq.gz"
 
             samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 3)
             assert samtools_sort_cl == \
-                   f"samtools sort -@ 1 -o .tbpore/in.subsampled.sorted.sam .tbpore/in.subsampled.sam"
+                   f"samtools sort -@ 1 -o tbpore_out/.tbpore/in.subsampled.sorted.sam tbpore_out/.tbpore/in.subsampled.sam"
 
             bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 4)
             assert bcftools_mpileup_cl == \
                    f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -O b -I -Q 13 " \
-                   f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o .tbpore/in.subsampled.pileup.bcf " \
-                   f".tbpore/in.subsampled.sorted.sam"
+                   f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o tbpore_out/.tbpore/in.subsampled.pileup.vcf " \
+                   f"tbpore_out/.tbpore/in.subsampled.sorted.sam"
 
             bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 5)
             assert bcftools_call_cl == \
-                   f"bcftools call --threads 1 --ploidy 1 -O b -V indels -m -o .tbpore/in.subsampled.snps.bcf " \
-                   f".tbpore/in.subsampled.pileup.bcf"
+                   f"bcftools call --threads 1 --ploidy 1 -O b -V indels -m -o tbpore_out/.tbpore/in.subsampled.snps.vcf " \
+                   f"tbpore_out/.tbpore/in.subsampled.pileup.vcf"
 
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert filter_vcf_cl == \
                    f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 " \
                    f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 " \
-                   f"-o .tbpore/in.subsampled.snps.filtered.bcf -i .tbpore/in.subsampled.snps.bcf"
+                   f"-o tbpore_out/in.subsampled.snps.filtered.vcf -i tbpore_out/.tbpore/in.subsampled.snps.vcf"
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert generate_consensus_cl == \
                    f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id in --verbose --ignore all " \
-                   f"--het-default none -o ./in.consensus.fa -i .tbpore/in.subsampled.snps.filtered.bcf " \
+                   f"--het-default none -o tbpore_out/in.consensus.fa -i tbpore_out/in.subsampled.snps.filtered.vcf " \
                    f"-f {H37RV_genome} -m {H37RV_mask}"
 
 
