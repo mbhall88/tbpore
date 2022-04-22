@@ -17,4 +17,3 @@ dependencies:
   - samtools=1.13
   - gsl
   - bcftools=1.13
-  - cyvcf2=0.30
