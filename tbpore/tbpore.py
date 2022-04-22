@@ -33,7 +33,7 @@ def load_config_file() -> Dict[Any, Any]:
     "-o",
     "--outdir",
     help="Directory to place output files",
-    default=".",
+    default="tbpore_out",
     show_default=True,
     type=click.Path(file_okay=False, writable=True, path_type=Path),
 )
