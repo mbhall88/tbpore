@@ -210,7 +210,7 @@ def main(
         logdir=logdir
     )
 
-    pileup_file = f"{tmp}/{name}.subsampled.pileup.bcf"
+    pileup_file = f"{tmp}/{name}.subsampled.pileup.vcf"
     bcftools_mpileup = ExternalTool(
         tool="bcftools",
         input=sorted_sam_file,
@@ -219,7 +219,7 @@ def main(
         logdir=logdir
     )
 
-    snps_file = f"{tmp}/{name}.subsampled.snps.bcf"
+    snps_file = f"{tmp}/{name}.subsampled.snps.vcf"
     bcftools_call = ExternalTool(
         tool="bcftools",
         input=pileup_file,
@@ -228,7 +228,7 @@ def main(
         logdir=logdir
     )
 
-    filtered_snps_file = f"{tmp}/{name}.subsampled.snps.filtered.bcf"
+    filtered_snps_file = f"{outdir}/{name}.subsampled.snps.filtered.vcf"
     filtering_options = " ".join((
         config['filter']['params'], parse_verbose_filter_params(config["filter"]["verbose_params"])))
     filter_vcf = ExternalTool(
