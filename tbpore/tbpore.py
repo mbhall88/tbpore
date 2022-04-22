@@ -81,14 +81,6 @@ def load_config_file() -> Dict[Any, Any]:
     default=1
 )
 @click.option(
-    "-l",
-    "--logdir",
-    help="Path to a directory to store the logs of external tools",
-    show_default=True,
-    default="logs",
-    type=click.Path(file_okay=False, writable=True, path_type=Path)
-)
-@click.option(
     "-A",
     "--report_all_mykrobe_calls",
     default=False,
@@ -114,7 +106,6 @@ def main(
     tmp: Path,
     name: str,
     threads: int,
-    logdir: Path,
     report_all_mykrobe_calls: bool,
     cleanup: bool,
 ):
@@ -171,7 +162,7 @@ def main(
         logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
         concatenate_fastqs(fq_files, infile)
 
-    # TODO: refactor these tools into classes inheriting from ExternalTool?
+    logdir = outdir/"logs"
     cache_dir.mkdir(parents=True, exist_ok=True)
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe = ExternalTool(
