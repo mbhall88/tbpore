@@ -83,6 +83,7 @@ def load_config_file() -> Dict[Any, Any]:
 @click.option(
     "-A",
     "--report_all_mykrobe_calls",
+    is_flag=True,
     default=False,
     show_default=True,
     help="Report all mykrobe calls (turn on flag -A, --report_all_calls when calling mykrobe)",
