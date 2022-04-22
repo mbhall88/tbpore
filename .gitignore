@@ -146,3 +146,4 @@ tags
 tmp/
 /sample_example/
 /tbpore_out/
+/tests/helpers/logs/
