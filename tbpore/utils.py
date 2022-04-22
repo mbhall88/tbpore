@@ -3,7 +3,7 @@ import glob
 import gzip
 import re
 from pathlib import Path
-from typing import IO, List, Sequence, Union, Dict, Any
+from typing import IO, Any, Dict, List, Sequence, Union
 
 FASTQ_REGEX = re.compile(r"\.f(ast)?q(\.gz)?$")
 PathLike = Union[str, Path]

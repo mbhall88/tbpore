@@ -4,12 +4,12 @@ import logging
 from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, NamedTuple, List, Tuple
+from pathlib import Path
+from typing import List, NamedTuple, Optional, Tuple
 
 import click
 import numpy as np
-from pathlib import Path
-from cyvcf2 import Variant, VCF, Writer
+from cyvcf2 import VCF, Variant, Writer
 
 HIST_BINS = 40
 

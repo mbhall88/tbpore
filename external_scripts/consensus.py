@@ -1,15 +1,15 @@
 # from https://raw.githubusercontent.com/mbhall88/head_to_head_pipeline/master/analysis/baseline_variants/scripts/consensus.py
 # with a small modification to read gzipped references
 
+import gzip
 import logging
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
-from typing import TextIO, Optional, Set, Dict, List, NamedTuple, Union
-import gzip
+from typing import Dict, List, NamedTuple, Optional, Set, TextIO, Union
 
 import click
-from cyvcf2 import Variant, VCF
+from cyvcf2 import VCF, Variant
 
 N = "N"
 PathLike = Union[str, Path]

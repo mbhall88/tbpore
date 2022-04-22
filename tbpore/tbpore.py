@@ -1,19 +1,31 @@
 import gzip
 import shutil
+import subprocess
 import sys
 from pathlib import Path
-from typing import Tuple, Dict, Any
-import subprocess
+from typing import Any, Dict, Tuple
 
 import click
-from loguru import logger
 import yaml
+from loguru import logger
 
-from tbpore import __version__, TMP_NAME, repo_root, H37RV_genome, H37RV_mask, cache_dir, config_file, \
-    external_scripts_dir
+from tbpore import (
+    TMP_NAME,
+    H37RV_genome,
+    H37RV_mask,
+    __version__,
+    cache_dir,
+    config_file,
+    external_scripts_dir,
+    repo_root,
+)
 from tbpore.cli import Mutex
 from tbpore.external_tools import ExternalTool
-from tbpore.utils import concatenate_fastqs, find_fastq_files, parse_verbose_filter_params
+from tbpore.utils import (
+    concatenate_fastqs,
+    find_fastq_files,
+    parse_verbose_filter_params,
+)
 
 log_fmt = (
     "[<green>{time:YYYY-MM-DD HH:mm:ss}</green>] <level>{level: <8}</level> | "
@@ -26,7 +38,9 @@ def load_config_file() -> Dict[Any, Any]:
         return yaml.safe_load(config_file_fh)
 
 
-def concatenate_inputs_into_infile(inputs: Tuple[Path, ...], infile: Path, recursive: bool) -> None:
+def concatenate_inputs_into_infile(
+    inputs: Tuple[Path, ...], infile: Path, recursive: bool
+) -> None:
     if len(inputs) == 1 and inputs[0].is_file():
         if not inputs[0].suffix == ".gz":
             with open(inputs[0], "rb") as f_in:
@@ -98,7 +112,7 @@ def concatenate_inputs_into_infile(inputs: Tuple[Path, ...], infile: Path, recur
     help="Number of threads to use in multithreaded tools",
     type=int,
     show_default=True,
-    default=1
+    default=1,
 )
 @click.option(
     "-A",
@@ -165,7 +179,7 @@ def main(
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive)
 
-    logdir = outdir/"logs"
+    logdir = outdir / "logs"
     cache_dir.mkdir(parents=True, exist_ok=True)
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe_output = f"{outdir}/{name}.mykrobe.json"
@@ -174,8 +188,8 @@ def main(
         input=f"-i {infile}",
         output=f"-o {mykrobe_output}",
         params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
-               f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
-        logdir=logdir
+        f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
+        logdir=logdir,
     )
 
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
@@ -183,8 +197,8 @@ def main(
         tool="rasusa",
         input=f"-i {infile}",
         output=f"-o {subsampled_reads}",
-        params=config['rasusa']['params'],
-        logdir=logdir
+        params=config["rasusa"]["params"],
+        logdir=logdir,
     )
 
     sam_file = f"{tmp}/{name}.subsampled.sam"
@@ -193,7 +207,7 @@ def main(
         input=f"{H37RV_genome} {subsampled_reads}",
         output=f"-o {sam_file}",
         params=f"-t {threads} {config['minimap2']['params']}",
-        logdir=logdir
+        logdir=logdir,
     )
 
     sorted_sam_file = f"{tmp}/{name}.subsampled.sorted.sam"
@@ -202,7 +216,7 @@ def main(
         input=sam_file,
         output=f"-o {sorted_sam_file}",
         params=f"sort -@ {threads} {config['samtools']['sort']['params']}",
-        logdir=logdir
+        logdir=logdir,
     )
 
     pileup_file = f"{tmp}/{name}.subsampled.pileup.vcf"
@@ -211,7 +225,7 @@ def main(
         input=sorted_sam_file,
         output=f"-o {pileup_file}",
         params=f"mpileup -f {H37RV_genome} --threads {threads} {config['bcftools']['mpileup']['params']}",
-        logdir=logdir
+        logdir=logdir,
     )
 
     snps_file = f"{tmp}/{name}.subsampled.snps.vcf"
@@ -220,18 +234,22 @@ def main(
         input=pileup_file,
         output=f"-o {snps_file}",
         params=f"call --threads {threads} {config['bcftools']['call']['params']}",
-        logdir=logdir
+        logdir=logdir,
     )
 
     filtered_snps_file = f"{outdir}/{name}.subsampled.snps.filtered.vcf"
-    filtering_options = " ".join((
-        config['filter']['params'], parse_verbose_filter_params(config["filter"]["verbose_params"])))
+    filtering_options = " ".join(
+        (
+            config["filter"]["params"],
+            parse_verbose_filter_params(config["filter"]["verbose_params"]),
+        )
+    )
     filter_vcf = ExternalTool(
         tool=sys.executable,
         input=f"-i {snps_file}",
         output=f"-o {filtered_snps_file}",
         params=f"{external_scripts_dir/'apply_filters.py'} {filtering_options}",
-        logdir=logdir
+        logdir=logdir,
     )
 
     consensus_file = f"{outdir}/{name}.consensus.fa"
@@ -240,16 +258,26 @@ def main(
         input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
         output=f"-o {consensus_file}",
         params=f"{external_scripts_dir/'consensus.py'} --sample-id {name} {config['consensus']['params']}",
-        logdir=logdir
+        logdir=logdir,
     )
 
-    tools_to_run = [mykrobe, rasusa, minimap, samtools_sort, bcftools_mpileup, bcftools_call, filter_vcf,
-                    generate_consensus]
+    tools_to_run = [
+        mykrobe,
+        rasusa,
+        minimap,
+        samtools_sort,
+        bcftools_mpileup,
+        bcftools_call,
+        filter_vcf,
+        generate_consensus,
+    ]
     for tool in tools_to_run:
         try:
             tool.run()
         except subprocess.CalledProcessError as error:
-            logger.error(f"Error calling {tool.command_as_str} (return code {error.returncode})")
+            logger.error(
+                f"Error calling {tool.command_as_str} (return code {error.returncode})"
+            )
             logger.error(f"Please check stdout log file: {tool.out_log}")
             logger.error(f"Please check stderr log file: {tool.err_log}")
             logger.error(f"Temporary files are preserved for debugging")
