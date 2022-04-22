@@ -18,9 +18,9 @@ samtools:
 
 bcftools:
   mpileup:
-    params: "-x -O b -I -Q 13 -a 'INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF' -h100 -M10000"
+    params: "-x -I -Q 13 -a 'INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF' -h100 -M10000"
   call:
-    params: "--ploidy 1 -O b -V indels -m"
+    params: "--ploidy 1 -V indels -m"
 
 filter:
   params: "-P --verbose --overwrite"
