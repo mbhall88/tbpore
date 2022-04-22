@@ -17,7 +17,6 @@ from tbpore import (
     cache_dir,
     config_file,
     external_scripts_dir,
-    repo_root,
 )
 from tbpore.cli import Mutex
 from tbpore.external_tools import ExternalTool
@@ -280,7 +279,7 @@ def main(
             )
             logger.error(f"Please check stdout log file: {tool.out_log}")
             logger.error(f"Please check stderr log file: {tool.err_log}")
-            logger.error(f"Temporary files are preserved for debugging")
+            logger.error("Temporary files are preserved for debugging")
             logger.error("Exiting...")
             ctx.exit(1)
 

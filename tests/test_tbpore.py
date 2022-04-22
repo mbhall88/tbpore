@@ -288,7 +288,7 @@ class TestCLICleanup:
 class TestInputConcatenation:
     def test_no_input___fails(self, run_core_mock, tmp_path):
         runner = CliRunner()
-        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+        with runner.isolated_filesystem(temp_dir=tmp_path):
             result = runner.invoke(main, [])
             assert result.exit_code == 2
             assert b"No INPUT files given" in result.stdout_bytes
