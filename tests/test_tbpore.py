@@ -1,12 +1,12 @@
 """Integration tests"""
 import gzip
 import sys
+from pathlib import Path
 
 from click.testing import CliRunner
 from unittest.mock import patch
 
-from tbpore.constants import *
-from tbpore.cli import main
+from tbpore.tbpore import TMP_NAME, main, cache_dir, H37RV_genome, H37RV_mask, external_scripts_dir
 from tbpore.external_tools import ExternalTool
 
 
@@ -34,8 +34,8 @@ class TestCLIExecution:
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
             assert mykrobe_cl == \
                    f"mykrobe predict --sample in -t 1 --tmp .tbpore --skeleton_dir {cache_dir} -e 0.08 " \
-                   f"--ploidy haploid --force --format json --min_proportion_expected_depth 0.20 --species tb " \
-                   f"-m 8192MB -o .tbpore/in.mykrobe.json -i .tbpore/in.fq.gz"
+                   f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb " \
+                   f"-m 2048MB -o .tbpore/in.mykrobe.json -i .tbpore/in.fq.gz"
 
             rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
             assert rasusa_cl == \
