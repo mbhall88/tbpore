@@ -165,10 +165,11 @@ def main(
     logdir = outdir/"logs"
     cache_dir.mkdir(parents=True, exist_ok=True)
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
+    mykrobe_output = f"{outdir}/{name}.mykrobe.json"
     mykrobe = ExternalTool(
         tool="mykrobe",
         input=f"-i {infile}",
-        output=f"-o {tmp}/{name}.mykrobe.json",
+        output=f"-o {mykrobe_output}",
         params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
                f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
         logdir=logdir
