@@ -14,7 +14,7 @@ tbpore = 'tbpore.tbpore:main'
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-click = "^8.0.3"
+click = "8.0.3"
 cyvcf2 = "^0.30"
 loguru = "^0.5.3"
 pyyaml = ">=6.0"
