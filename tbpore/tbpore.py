@@ -38,7 +38,7 @@ def load_config_file() -> Dict[Any, Any]:
 
 
 def concatenate_inputs_into_infile(
-    inputs: Tuple[Path, ...], infile: Path, recursive: bool
+    inputs: Tuple[Path, ...], infile: Path, recursive: bool, ctx: click.Context
 ) -> None:
     if len(inputs) == 1 and inputs[0].is_file():
         if not inputs[0].suffix == ".gz":
@@ -55,6 +55,13 @@ def concatenate_inputs_into_infile(
                 fq_files.append(p)
             else:
                 fq_files.extend(find_fastq_files(p, recursive))
+
+        no_fastq_files_found = len(fq_files) == 0
+        if no_fastq_files_found:
+            logger.error("No fastq files found for the given inputs, please check your input files/dirs.")
+            logger.error("Tip: to search for fastq files recursively, please use the --recursive flag.")
+            ctx.exit(2)
+
         logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
         concatenate_fastqs(fq_files, infile)
 
@@ -176,7 +183,7 @@ def main(
         logger.debug(f"No sample name found; using '{name}'")
 
     infile = tmp / f"{name}.fq.gz"
-    concatenate_inputs_into_infile(inputs, infile, recursive)
+    concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
 
     logdir = outdir / "logs"
     cache_dir.mkdir(parents=True, exist_ok=True)

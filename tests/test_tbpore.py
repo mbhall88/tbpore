@@ -362,6 +362,18 @@ class TestInputConcatenation:
             expected = expected_fq1 + expected_fq2
             assert sorted(actual) == sorted(expected)
 
+    def test_input_is_empty_dir___error_out(self, run_core_mock, tmp_path):
+        sample = "sam"
+        opts = ["-D", "-S", sample]
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            opts.extend(["-o", str(td)])
+            opts.extend([str(td)])
+            result = runner.invoke(main, opts)
+            assert result.exit_code == 2
+            assert b"No fastq files found for the given inputs, please check your input files/dirs." in result.stdout_bytes
+
     def test_input_is_dir(self, run_core_mock, tmp_path):
         sample = "sam"
         opts = ["-D", "-S", sample]
