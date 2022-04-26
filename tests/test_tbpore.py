@@ -427,3 +427,33 @@ class TestInputConcatenation:
 
             expected = expected_fq2
             assert sorted(actual) == sorted(expected)
+
+    def test_input_is_dir_and_files_in_dir___ensure_duplication_does_not_happen(self, run_core_mock, tmp_path):
+        sample = "sam"
+        opts = ["-D", "-S", sample]
+        runner = CliRunner()
+        expected_fq1 = "@r1\nACGT\n+$$$%\n"
+        expected_fq2 = "@r1\nAAGT\n+$$$%\n"
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile1 = td / "in1.fq"
+            infile2 = td / "in2.fastq.gz"
+            with open(infile1, "w") as fp:
+                fp.write(expected_fq1)
+            with gzip.open(infile2, "wb") as fp:
+                fp.write(expected_fq2.encode())
+
+            opts.extend(["-o", str(td)])
+            opts.extend([str(td), str(infile1), str(infile2)])
+            result = runner.invoke(main, opts)
+            assert result.exit_code == 0
+            print(result.stdout_bytes)
+            assert b"Found 2 fastq files. Joining them..." in result.stdout_bytes
+
+            tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
+            assert tbpore_concat.exists()
+            with gzip.open(tbpore_concat, mode="rt") as fp:
+                actual = fp.read()
+
+            expected = expected_fq1 + expected_fq2
+            assert sorted(actual) == sorted(expected)

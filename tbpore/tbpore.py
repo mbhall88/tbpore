@@ -49,12 +49,16 @@ def concatenate_inputs_into_infile(
             shutil.copy2(inputs[0], infile)
     else:
         logger.info("Searching for fastq files...")
-        fq_files = []
+        fq_files = set()
         for p in inputs:
             if p.is_file():
-                fq_files.append(p)
+                fq_files.add(p)
             else:
-                fq_files.extend(find_fastq_files(p, recursive))
+                fq_files.update(find_fastq_files(p, recursive))
+
+        # remove non-trivial duplicates (e.g. when comparing Path/str objects and paths referring to the same file but
+        # represented differently)
+        fq_files = set(map(lambda file: Path(file).resolve(), fq_files))
 
         no_fastq_files_found = len(fq_files) == 0
         if no_fastq_files_found:
