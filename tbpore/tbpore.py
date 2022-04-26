@@ -179,6 +179,7 @@ def main(
 
     config = load_config_file()
 
+    # create dirs for the run
     outdir.mkdir(exist_ok=True, parents=True)
     if tmp is None:
         tmp = outdir / TMP_NAME
