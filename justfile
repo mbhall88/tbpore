@@ -20,6 +20,7 @@ lint:
 
 # install latest version with poetry
 install:
+    poetry config experimental.new-installer false
     poetry install
 
 # run all tests
