@@ -9,4 +9,26 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**⚠️WORK IN PROGRESS⚠️**
+# Installation
+
+## conda
+
+`conda install tbpore`
+
+## local
+
+### Dependencies
+* `git`
+* `conda`
+
+### Walkthrough
+
+```
+git clone https://github.com/mbhall88/tbpore
+cd tbpore
+conda env create -f environment.yaml && conda activate tbpore  # install dependencies
+just install  # install tbpore
+just check  # checks installation is fine
+scripts/run_sample_example.sh  # if you want to run tbpore in a sample example
+```
+
