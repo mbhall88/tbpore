@@ -171,7 +171,7 @@ def main(
     """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
 
     INPUTS: Fastq file(s) and/or a directory containing fastq files. All files will
-    be joined into a single fastq file, so ensure thery're all part of the same
+    be joined into a single fastq file, so ensure they're all part of the same
     sample/isolate.
     """
     setup_logging(verbose, quiet)
