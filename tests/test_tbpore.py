@@ -372,7 +372,10 @@ class TestInputConcatenation:
             opts.extend([str(td)])
             result = runner.invoke(main, opts)
             assert result.exit_code == 2
-            assert b"No fastq files found for the given inputs, please check your input files/dirs." in result.stdout_bytes
+            assert (
+                b"No fastq files found for the given inputs, please check your input files/dirs."
+                in result.stdout_bytes
+            )
 
     def test_input_is_dir(self, run_core_mock, tmp_path):
         sample = "sam"
@@ -428,7 +431,9 @@ class TestInputConcatenation:
             expected = expected_fq2
             assert sorted(actual) == sorted(expected)
 
-    def test_input_is_dir_and_files_in_dir___ensure_duplication_does_not_happen(self, run_core_mock, tmp_path):
+    def test_input_is_dir_and_files_in_dir___ensure_duplication_does_not_happen(
+        self, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()

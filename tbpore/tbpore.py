@@ -62,8 +62,12 @@ def concatenate_inputs_into_infile(
 
         no_fastq_files_found = len(fq_files) == 0
         if no_fastq_files_found:
-            logger.error("No fastq files found for the given inputs, please check your input files/dirs.")
-            logger.error("Tip: to search for fastq files recursively, please use the --recursive flag.")
+            logger.error(
+                "No fastq files found for the given inputs, please check your input files/dirs."
+            )
+            logger.error(
+                "Tip: to search for fastq files recursively, please use the --recursive flag."
+            )
             ctx.exit(2)
 
         logger.info(f"Found {len(fq_files)} fastq files. Joining them...")
