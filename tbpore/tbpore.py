@@ -66,6 +66,16 @@ def concatenate_inputs_into_infile(
         concatenate_fastqs(fq_files, infile)
 
 
+def setup_logging(verbose: bool, quiet: bool) -> None:
+    log_lvl = "INFO"
+    if verbose:
+        log_lvl = "DEBUG"
+    elif quiet:
+        log_lvl = "ERROR"
+    logger.remove()
+    logger.add(sys.stderr, level=log_lvl, format=log_fmt)
+
+
 @click.command()
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -156,21 +166,17 @@ def main(
     be joined into a single fastq file, so ensure thery're all part of the same
     sample/isolate.
     """
-    config = load_config_file()
-
-    log_lvl = "INFO"
-    if verbose:
-        log_lvl = "DEBUG"
-    elif quiet:
-        log_lvl = "ERROR"
-    logger.remove()
-    logger.add(sys.stderr, level=log_lvl, format=log_fmt)
+    setup_logging(verbose, quiet)
     logger.info(f"Welcome to TBpore version {__version__}")
+
+    config = load_config_file()
 
     outdir.mkdir(exist_ok=True, parents=True)
     if tmp is None:
         tmp = outdir / TMP_NAME
     tmp.mkdir(exist_ok=True, parents=True)
+    logdir = outdir / "logs"
+    cache_dir.mkdir(parents=True, exist_ok=True)
 
     if not inputs:
         logger.error("No INPUT files given")
@@ -185,8 +191,6 @@ def main(
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
 
-    logdir = outdir / "logs"
-    cache_dir.mkdir(parents=True, exist_ok=True)
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe_output = f"{outdir}/{name}.mykrobe.json"
     mykrobe = ExternalTool(
