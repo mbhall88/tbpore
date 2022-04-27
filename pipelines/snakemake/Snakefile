@@ -8,7 +8,7 @@ rule run_tbpore:
     input:
         f"{config['base_reads_dir']}/{{sample}}"
     output:
-        f"{config['output_dir']}/{{sample}}"
+        directory(f"{config['output_dir']}/{{sample}}")
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 2000 * attempt
