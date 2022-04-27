@@ -1,0 +1,18 @@
+configfile: "config.yaml"
+
+rule all:
+    input:
+        expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+
+rule run_tbpore:
+    input:
+        f"{config['base_reads_dir']}/{{sample}}"
+    output:
+        f"{config['output_dir']}/{{sample}}"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/run_tbpore_{sample}.log"
+    shell:
+        "tbpore -o {output} --cleanup {input}/*.fastq.gz"
