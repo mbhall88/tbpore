@@ -22,4 +22,4 @@ rule run_tbpore:
     log:
         "logs/run_tbpore_{sample}.log"
     shell:
-        "tbpore -o {output} --cleanup {input}/{wildcards.sample}.fastq.gz"
+        "tbpore -o {output} --cleanup {input}"
