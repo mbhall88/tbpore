@@ -1,18 +1,25 @@
+import glob
+
 configfile: "config.yaml"
 
 rule all:
     input:
         expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
 
+def get_input(wildcards):
+    reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
+    assert len(reads) == 1
+    return reads
+
 rule run_tbpore:
     input:
-        f"{config['base_reads_dir']}/{{sample}}"
+        get_input
     output:
         directory(f"{config['output_dir']}/{{sample}}")
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: 2000 * attempt
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/run_tbpore_{sample}.log"
     shell:
-        "tbpore -o {output} --cleanup {input}/*.fastq.gz"
+        "tbpore -o {output} --cleanup {input}/{wildcards.sample}.fastq.gz"
