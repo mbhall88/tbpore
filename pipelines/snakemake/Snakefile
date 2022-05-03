@@ -57,7 +57,6 @@ rule compare_h2h_and_tbpore_mykrobe:
     log:
         "logs/compare_h2h_and_tbpore_mykrobe.log"
     run:
-    """
         import json
         import dictdiffer
 
@@ -85,4 +84,4 @@ rule compare_h2h_and_tbpore_mykrobe:
             compare(h2h_mykrobe_glob_pattern=params.h2h_mykrobe_glob_pattern,
                     tbpore_glob_pattern=f"{params.tbpore_output}/*/*.mykrobe.json",
                     output_fh=output_fh)
-    """
+
