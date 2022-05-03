@@ -35,9 +35,54 @@ rule compare_h2h_and_tbpore_consensus:
         h2h_consensus_glob_pattern = config['h2h_consensus_glob_pattern'],
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: 2000 * attempt
+        mem_mb=lambda wildcards, attempt: 1000 * attempt
     log:
         "logs/compare_h2h_and_tbpore_consensus.log"
     conda:
         "envs/psdm.yaml"
     script: "scripts/compare_H2H_and_tbpore_consensus.py"
+
+
+rule compare_h2h_and_tbpore_mykrobe:
+    input:
+        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+    output:
+        mykrobe_comparison = f"{config['output_dir']}/mykrobe_comparison.out"
+    params:
+        tbpore_output = config['output_dir'],
+        h2h_mykrobe_glob_pattern = config['h2h_mykrobe_glob_pattern'],
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/compare_h2h_and_tbpore_mykrobe.log"
+    run:
+    """
+        import json
+        import dictdiffer
+
+        def get_samples(glob_pattern):
+            mykrobe_files = (Path(file).resolve() for file in glob(glob_pattern))
+            return {file.name.replace(".mykrobe.json", ""): file for file in mykrobe_files}
+
+        def compare(h2h_mykrobe_glob_pattern, tbpore_glob_pattern, output_fh):
+            h2h_samples = get_samples(h2h_consensus_glob_pattern)
+            tbpore_samples = get_samples(tbpore_glob_pattern)
+            common_samples = set(h2h_samples.keys()).intersection(set(tbpore_samples.keys()))
+            for sample in common_samples:
+                h2h_mykrobe = h2h_samples[sample]
+                tbpore_mykrobe = tbpore_samples[sample]
+
+                with open(h2h_mykrobe) as h2h_mykrobe_fh, open(tbpore_mykrobe) as tbpore_mykrobe_fh:
+                    h2h_mykrobe_json = json.load(h2h_mykrobe_fh)
+                    tbpore_mykrobe_json = json.load(tbpore_mykrobe_fh)
+
+                print(f"Diffing mykrobe jsons for {sample}", file=output_fh)
+                for diff in list(dictdiffer.diff(h2h_mykrobe_json[sample]["susceptibility"], tbpore_mykrobe_json[sample]["susceptibility"])):
+                    print(diff, file=output_fh)
+
+        with open(output.mykrobe_comparison, "w") as output_fh:
+            compare(h2h_mykrobe_glob_pattern=params.h2h_mykrobe_glob_pattern,
+                    tbpore_glob_pattern=f"{params.tbpore_output}/*/*.mykrobe.json",
+                    output_fh=output_fh)
+    """
