@@ -35,6 +35,12 @@ just check  # checks installation is fine
 scripts/run_sample_example.sh
 ```
 
+# Performance
+
+Benchmarked on 109 TB Madagascar ONT samples with 1 thread:
+* Runtime: `1361`s avg (`550`s SD), max `2294`s, min `102`s (s = seconds);
+* RAM: `1266`MB avg (`394`MB SD), max `1914` MB, min `527` MB (MB = Megabytes);
+
 # Usage
 
 ```
