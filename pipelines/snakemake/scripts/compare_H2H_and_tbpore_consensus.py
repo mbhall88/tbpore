@@ -61,7 +61,8 @@ def pretty_print_stats(stats_to_count):
     stats_to_count_sorted = dict(sorted(stats_to_count.items()))
     pp_stats = []
     for stats, count in stats_to_count_sorted.items():
-        pp_stats.append(f"{stats} = {count}")
+        if count != 0:
+            pp_stats.append(f"{stats} = {count}")
     return "\n".join(pp_stats)
 
 
