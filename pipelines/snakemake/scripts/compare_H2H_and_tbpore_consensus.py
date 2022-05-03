@@ -24,7 +24,7 @@ def base_to_key(base, ref_base):
 def compare_core(h2h_consensus, tbpore_consensus, H37RV_genome):
     with open(h2h_consensus) as h2h_consensus_fh, \
          open(tbpore_consensus) as tbpore_consensus_fh, \
-         gzip.open(H37RV_genome) as H37RV_genome_fh:
+         gzip.open(H37RV_genome, "rt") as H37RV_genome_fh:
         h2h_consensus_records = list(SeqIO.parse(h2h_consensus_fh, "fasta"))
         tbpore_consensus_records = list(SeqIO.parse(tbpore_consensus_fh, "fasta"))
         H37RV_genome_records = list(SeqIO.parse(H37RV_genome_fh, "fasta"))
