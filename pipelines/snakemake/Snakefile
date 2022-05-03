@@ -4,7 +4,7 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        f"{config['output_dir']}/consensus_comparison.out"
+        f"{config['output_dir']}/consensus_comparison.out", f"{config['output_dir']}/mykrobe_comparison.out"
 
 def get_input(wildcards):
     reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
