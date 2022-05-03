@@ -35,13 +35,12 @@ rule compare_h2h_and_tbpore_consensus:
     params:
         tbpore_output = config['output_dir'],
         h2h_consensus_glob_pattern = config['h2h_consensus_glob_pattern'],
+        H37RV_genome = "../../data/H37RV_genome/h37rv.fa.gz"
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 1000 * attempt
     log:
         "logs/compare_h2h_and_tbpore_consensus.log"
-    conda:
-        "envs/psdm.yaml"
     script: "scripts/compare_H2H_and_tbpore_consensus.py"
 
 
