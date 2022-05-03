@@ -89,14 +89,14 @@ class TestExternalToolsExecution:
                 filter_vcf_cl
                 == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
                 f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
-                f"-o {td}/in.subsampled.snps.filtered.vcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
+                f"-o {td}/in.subsampled.snps.filtered.bcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
             )
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id in --verbose --ignore all "
-                f"--het-default none -o {td}/in.consensus.fa -i {td}/in.subsampled.snps.filtered.vcf "
+                f"--het-default none -o {td}/in.consensus.fa -i {td}/in.subsampled.snps.filtered.bcf "
                 f"-f {H37RV_genome} -m {H37RV_mask}"
             )
 
@@ -178,14 +178,14 @@ class TestExternalToolsExecution:
                 filter_vcf_cl
                 == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
                 f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
-                f"-o {td}/custom_name.subsampled.snps.filtered.vcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
+                f"-o {td}/custom_name.subsampled.snps.filtered.bcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
             )
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id custom_name --verbose --ignore all "
-                f"--het-default none -o {td}/custom_name.consensus.fa -i {td}/custom_name.subsampled.snps.filtered.vcf "
+                f"--het-default none -o {td}/custom_name.consensus.fa -i {td}/custom_name.subsampled.snps.filtered.bcf "
                 f"-f {H37RV_genome} -m {H37RV_mask}"
             )
 

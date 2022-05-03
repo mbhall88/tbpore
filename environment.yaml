@@ -12,7 +12,7 @@ dependencies:
   - openssl
   - ripgrep
   - poetry=1.1
-  - mykrobe=0.10
+  - mykrobe=0.11
   - rasusa
   - samtools=1.13
   - bcftools=1.13
