@@ -32,7 +32,7 @@ rule compare_h2h_and_tbpore_consensus:
         consensus_comparison = f"{config['output_dir']}/consensus_comparison.out"
     params:
         tbpore_output = config['output_dir'],
-        h2h_glob_pattern = config['h2h_glob_pattern'],
+        h2h_consensus_glob_pattern = config['h2h_consensus_glob_pattern'],
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 2000 * attempt
