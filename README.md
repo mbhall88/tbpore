@@ -31,7 +31,8 @@ cd tbpore
 conda env create -f environment.yaml && conda activate tbpore  # install dependencies
 just install  # install tbpore
 just check  # checks installation is fine
-scripts/run_sample_example.sh  # if you want to run tbpore in a sample example
+# if you want to run tbpore on an example isolate
+scripts/run_sample_example.sh
 ```
 
 # Usage
