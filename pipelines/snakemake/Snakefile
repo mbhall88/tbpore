@@ -4,7 +4,9 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        f"{config['output_dir']}/consensus_comparison.out", f"{config['output_dir']}/mykrobe_comparison.out"
+        f"{config['output_dir']}/consensus_comparison.out",
+        f"{config['output_dir']}/mykrobe_comparison.out",
+        f"{config['output_dir']}/mykrobe_comparison.simple.out",
 
 def get_input(wildcards):
     reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
@@ -47,7 +49,8 @@ rule compare_h2h_and_tbpore_mykrobe:
     input:
         all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
     output:
-        mykrobe_comparison = f"{config['output_dir']}/mykrobe_comparison.out"
+        mykrobe_comparison = f"{config['output_dir']}/mykrobe_comparison.out",
+        mykrobe_comparison_simple = f"{config['output_dir']}/mykrobe_comparison.simple.out"
     params:
         tbpore_output = config['output_dir'],
         h2h_mykrobe_glob_pattern = config['h2h_mykrobe_glob_pattern'],
@@ -66,7 +69,14 @@ rule compare_h2h_and_tbpore_mykrobe:
             mykrobe_files = (Path(file).resolve() for file in glob(glob_pattern))
             return {file.name.replace(".mykrobe.json", ""): file for file in mykrobe_files}
 
-        def compare(h2h_mykrobe_glob_pattern, tbpore_glob_pattern, output_fh):
+        def cleanup_susceptiblity_dict(dict):
+            for drug in dict:
+                if "called_by" in dict[drug]:
+                    del dict[drug]["called_by"]
+            for drug in dict:
+                assert "called_by" not in dict[drug]
+
+        def compare(h2h_mykrobe_glob_pattern, tbpore_glob_pattern, output_fh, output_simple_fh):
             h2h_samples = get_samples(h2h_mykrobe_glob_pattern)
             tbpore_samples = get_samples(tbpore_glob_pattern)
             common_samples = set(h2h_samples.keys()).intersection(set(tbpore_samples.keys()))
@@ -79,10 +89,19 @@ rule compare_h2h_and_tbpore_mykrobe:
                     tbpore_mykrobe_json = json.load(tbpore_mykrobe_fh)
 
                 print(f"Diffing mykrobe jsons for {sample}", file=output_fh)
-                for diff in list(dictdiffer.diff(h2h_mykrobe_json[sample]["susceptibility"], tbpore_mykrobe_json[sample]["susceptibility"])):
+                h2h_susceptibility = h2h_mykrobe_json[sample]["susceptibility"]
+                tbpore_susceptibility = tbpore_mykrobe_json[sample]["susceptibility"]
+                for diff in list(dictdiffer.diff(h2h_susceptibility, tbpore_susceptibility)):
                     print(diff, file=output_fh)
 
-        with open(output.mykrobe_comparison, "w") as output_fh:
+                print(f"Diffing mykrobe jsons for {sample}", file=output_simple_fh)
+                cleanup_susceptiblity_dict(h2h_susceptibility)
+                cleanup_susceptiblity_dict(tbpore_susceptibility)
+                for diff in list(dictdiffer.diff(h2h_susceptibility, tbpore_susceptibility)):
+                    print(diff, file=output_simple_fh)
+
+
+        with open(output.mykrobe_comparison, "w") as output_fh, open(output.mykrobe_comparison_simple, "w") as output_simple_fh:
             compare(h2h_mykrobe_glob_pattern=params.h2h_mykrobe_glob_pattern,
                     tbpore_glob_pattern=f"{params.tbpore_output}/*/*.mykrobe.json",
-                    output_fh=output_fh)
+                    output_fh=output_fh, output_simple_fh=output_simple_fh)
