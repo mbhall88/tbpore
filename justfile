@@ -16,10 +16,11 @@ check-fmt:
 
 # lint code with flake8
 lint:
-    poetry run flake8 .
+    poetry run flake8 . --extend-exclude=".venv/"
 
 # install latest version with poetry
 install:
+    poetry config experimental.new-installer false
     poetry install
 
 # run all tests
