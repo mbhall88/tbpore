@@ -17,6 +17,7 @@ from tbpore import (
     cache_dir,
     config_file,
     external_scripts_dir,
+    decontamination_db_fasta
 )
 from tbpore.cli import Mutex
 from tbpore.external_tools import ExternalTool
@@ -200,6 +201,24 @@ def main(
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
 
+    decontamination_db_index = str(tmp / "tbpore.remove_contam.fa.gz.map-ont.mmi")
+    index_decontamination_db = ExternalTool(
+        tool="minimap2",
+        input=str(decontamination_db_fasta),
+        output=f"-d {decontamination_db_index}",
+        params=f"{config['minimap2']['index_decom_DB']['params']} -t {threads}",
+        logdir=logdir,
+    )
+
+    decontaminated_sam = str(tmp / "tbpore.remove_contam.sam")
+    map_decontamination_db = ExternalTool(
+        tool="minimap2",
+        input=f"{decontamination_db_index} {infile}",
+        output=f"-o {decontaminated_sam}",
+        params=f"{config['minimap2']['map_to_decom_DB']['params']} -t {threads}",
+        logdir=logdir,
+    )
+
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe_output = f"{outdir}/{name}.mykrobe.json"
     mykrobe = ExternalTool(
@@ -225,7 +244,7 @@ def main(
         tool="minimap2",
         input=f"{H37RV_genome} {subsampled_reads}",
         output=f"-o {sam_file}",
-        params=f"-t {threads} {config['minimap2']['params']}",
+        params=f"-t {threads} {config['minimap2']['map']['params']}",
         logdir=logdir,
     )
 
@@ -281,14 +300,16 @@ def main(
     )
 
     tools_to_run = [
-        mykrobe,
-        rasusa,
-        minimap,
-        samtools_sort,
-        bcftools_mpileup,
-        bcftools_call,
-        filter_vcf,
-        generate_consensus,
+        index_decontamination_db,
+        map_decontamination_db,
+        # mykrobe,
+        # rasusa,
+        # minimap,
+        # samtools_sort,
+        # bcftools_mpileup,
+        # bcftools_call,
+        # filter_vcf,
+        # generate_consensus,
     ]
     for tool in tools_to_run:
         try:
