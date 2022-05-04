@@ -18,8 +18,18 @@ minimap2:
     params: "-a -L --sam-hit-only --secondary=no -x map-ont"
 
 samtools:
+  sort_decom_DB:
+    params: ""
+  index_decom_DB:
+    params: ""
   sort:
     params: ""
+
+filter_contamination:
+  params: "--verbose --ignore-secondary"
+
+extract_decontaminated_nanopore_reads:
+  params: "grep"
 
 bcftools:
   mpileup:
