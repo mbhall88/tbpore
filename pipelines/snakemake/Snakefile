@@ -20,7 +20,7 @@ rule run_tbpore:
         directory(f"{config['output_dir']}/{{sample}}")
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: 4000 * attempt
+        mem_mb=lambda wildcards, attempt: 10000 * attempt
     log:
         "logs/run_tbpore_{sample}.log"
     shell:
