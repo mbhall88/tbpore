@@ -10,11 +10,26 @@ rasusa:
   params: "-c 150 -g 4411532 -s 88"
 
 minimap2:
-  params: "-a -L --sam-hit-only --secondary=no -x map-ont"
+  index_decom_DB:
+    params: "-I 4G -x map-ont"
+  map_to_decom_DB:
+    params: "-aL2 -x map-ont"
+  map:
+    params: "-a -L --sam-hit-only --secondary=no -x map-ont"
 
 samtools:
+  sort_decom_DB:
+    params: ""
+  index_decom_DB:
+    params: ""
   sort:
     params: ""
+
+filter_contamination:
+  params: "--verbose --ignore-secondary"
+
+extract_decontaminated_nanopore_reads:
+  params: "grep"
 
 bcftools:
   mpileup:
