@@ -1,0 +1,3 @@
+snakemake
+dictdiffer
+biopython
