@@ -24,7 +24,7 @@ rule run_tbpore:
     log:
         "logs/run_tbpore_{sample}.log"
     shell:
-        "tbpore -o {output} --cleanup {input}"
+        "tbpore --no-cleanup -o {output} {input}"
 
 
 rule compare_h2h_and_tbpore_consensus:
