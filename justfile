@@ -16,7 +16,7 @@ check-fmt:
 
 # lint code with flake8
 lint:
-    poetry run flake8 . --extend-exclude=".venv/"
+    poetry run flake8 . --extend-exclude=".venv/,pipelines/snakemake"
 
 # install latest version with poetry
 install:
