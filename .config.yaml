@@ -11,7 +11,7 @@ rasusa:
 
 minimap2:
   index_decom_DB:
-    params: "-I 4G -x map-ont"
+    params: "-I 500M -x map-ont"
   map_to_decom_DB:
     params: "-aL2 -x map-ont"
   map:
