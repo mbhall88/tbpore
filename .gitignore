@@ -148,3 +148,6 @@ tmp/
 /tbpore_out/
 /tests/helpers/logs/
 /pipelines/snakemake/.snakemake/
+/data/decontamination_db/remove_contam.fa.gz
+/data/decontamination_db/remove_contam.tsv
+/debug/
