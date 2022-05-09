@@ -102,7 +102,11 @@ class Classifier:
 )
 @click.option("-v", "--verbose", help="Turns on debug-level logging.", is_flag=True)
 def main(
-    samfile: str, metadata: str, outdir: str, ignore_secondary: bool, verbose: bool,
+    samfile: str,
+    metadata: str,
+    outdir: str,
+    ignore_secondary: bool,
+    verbose: bool,
 ):
     """This scripts classifies records in an alignment to a contamination database, with
     the help of a metadata file mapping reference names to whether they are

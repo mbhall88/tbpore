@@ -16,9 +16,9 @@ from tbpore import (
     __version__,
     cache_dir,
     config_file,
-    external_scripts_dir,
     decontamination_db_fasta,
-    decontamination_db_metadata
+    decontamination_db_metadata,
+    external_scripts_dir,
 )
 from tbpore.cli import Mutex
 from tbpore.external_tools import ExternalTool
@@ -264,7 +264,7 @@ def main(
         tool="seqkit",
         input=f"-f {reads_to_keep} {infile}",
         output=f"-o {decontaminated_nanopore_reads}",
-        params=config['extract_decontaminated_nanopore_reads']['params'],
+        params=config["extract_decontaminated_nanopore_reads"]["params"],
         logdir=logdir,
     )
 
