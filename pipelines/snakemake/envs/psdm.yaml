@@ -1,0 +1,7 @@
+name: psdm
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - psdm
