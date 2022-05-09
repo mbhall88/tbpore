@@ -13,7 +13,7 @@ minimap2:
   index_decom_DB:
     params: "-I 500M -x map-ont"
   map_to_decom_DB:
-    params: "-aL2 -x map-ont"
+    params: "-aL2 -x map-ont --split-prefix tbpore.remove_contam.sp"
   map:
     params: "-a -L --sam-hit-only --secondary=no -x map-ont"
 
