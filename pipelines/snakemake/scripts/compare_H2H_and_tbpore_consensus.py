@@ -72,8 +72,7 @@ def pretty_print_stats(stats_to_count):
     pp_stats = []
     for stats, count in stats_to_count_sorted.items():
         if count != 0:
-            if stats != "equal" and stats != "(N, ref)" and stats != "(ref, N)":
-                pp_stats.append(f"{stats} = {count}")
+            pp_stats.append(f"{stats} = {count}")
     return "\n".join(pp_stats)
 
 
