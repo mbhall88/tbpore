@@ -13,6 +13,8 @@ from tbpore.tbpore import (
     H37RV_genome,
     H37RV_mask,
     cache_dir,
+    decontamination_db_fasta,
+    decontamination_db_metadata,
     external_scripts_dir,
     main,
 )
@@ -40,7 +42,7 @@ class TestExternalToolsExecution:
             assert result.exit_code == 0
 
             # ensure all tools were called in the correct order and with the correct parameters
-            assert run_core_mock.call_count == 8
+            assert run_core_mock.call_count == 14
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
             assert (
@@ -50,26 +52,72 @@ class TestExternalToolsExecution:
                 f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
             )
 
-            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
+            index_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 1
+            )
             assert (
-                rasusa_cl
-                == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.fq.gz"
+                index_decontamination_db_cl
+                == f"minimap2 -I 500M -x map-ont -t 1 -d {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {decontamination_db_fasta}"
             )
 
-            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
+            map_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 2
+            )
+            assert (
+                map_decontamination_db_cl
+                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
+            )
+
+            sort_decontaminated_sam_cl = self.get_command_line_from_mock(
+                run_core_mock, 3
+            )
+            assert (
+                sort_decontaminated_sam_cl
+                == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.decontaminated.sorted.bam {td}/{TMP_NAME}/in.decontaminated.sam"
+            )
+
+            index_sorted_decontaminated_bam_cl = self.get_command_line_from_mock(
+                run_core_mock, 4
+            )
+            assert (
+                index_sorted_decontaminated_bam_cl
+                == f"samtools index -@ 1 {td}/{TMP_NAME}/in.decontaminated.sorted.bam"
+            )
+
+            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            assert (
+                filter_contamination_cl
+                == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/{TMP_NAME}/in.decontaminated.filter -i {td}/{TMP_NAME}/in.decontaminated.sorted.bam -m {decontamination_db_metadata}"
+            )
+
+            extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
+                run_core_mock, 6
+            )
+            assert (
+                extract_decontaminated_nanopore_reads_cl
+                == f"seqkit grep -o {td}/{TMP_NAME}/in.decontaminated.fastq.gz -f {td}/{TMP_NAME}/in.decontaminated.filter/keep.reads {td}/{TMP_NAME}/in.fq.gz"
+            )
+
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                rasusa_cl
+                == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.decontaminated.fastq.gz"
+            )
+
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
             assert (
                 minimap2_cl
                 == f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.subsampled.sam "
                 f"{H37RV_genome} {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
-            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 3)
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 9)
             assert (
                 samtools_sort_cl
                 == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.subsampled.sorted.sam {td}/{TMP_NAME}/in.subsampled.sam"
             )
 
-            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 4)
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 10)
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -I -Q 13 "
@@ -77,14 +125,14 @@ class TestExternalToolsExecution:
                 f"{td}/{TMP_NAME}/in.subsampled.sorted.sam"
             )
 
-            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_call_cl
                 == f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.subsampled.snps.vcf "
                 f"{td}/{TMP_NAME}/in.subsampled.pileup.vcf"
             )
 
-            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 6)
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 filter_vcf_cl
                 == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
@@ -92,7 +140,7 @@ class TestExternalToolsExecution:
                 f"-o {td}/in.subsampled.snps.filtered.bcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
             )
 
-            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id in --verbose --ignore all "
@@ -128,7 +176,7 @@ class TestExternalToolsExecution:
             assert result.exit_code == 0
 
             # ensure all tools were called in the correct order and with the correct parameters
-            assert run_core_mock.call_count == 8
+            assert run_core_mock.call_count == 14
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
             assert (
@@ -138,27 +186,73 @@ class TestExternalToolsExecution:
                 f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.fq.gz"
             )
 
-            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
+            index_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 1
+            )
+            assert (
+                index_decontamination_db_cl
+                == f"minimap2 -I 500M -x map-ont -t 8 -d {td}/custom_tmp/tbpore.remove_contam.fa.gz.map-ont.mmi {decontamination_db_fasta}"
+            )
+
+            map_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 2
+            )
+            assert (
+                map_decontamination_db_cl
+                == f"minimap2 -aL2 -x map-ont -t 8 -o {td}/custom_tmp/custom_name.decontaminated.sam {td}/custom_tmp/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/custom_tmp/custom_name.fq.gz"
+            )
+
+            sort_decontaminated_sam_cl = self.get_command_line_from_mock(
+                run_core_mock, 3
+            )
+            assert (
+                sort_decontaminated_sam_cl
+                == f"samtools sort -@ 8 -o {td}/custom_tmp/custom_name.decontaminated.sorted.bam {td}/custom_tmp/custom_name.decontaminated.sam"
+            )
+
+            index_sorted_decontaminated_bam_cl = self.get_command_line_from_mock(
+                run_core_mock, 4
+            )
+            assert (
+                index_sorted_decontaminated_bam_cl
+                == f"samtools index -@ 8 {td}/custom_tmp/custom_name.decontaminated.sorted.bam"
+            )
+
+            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            assert (
+                filter_contamination_cl
+                == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/custom_tmp/custom_name.decontaminated.filter -i {td}/custom_tmp/custom_name.decontaminated.sorted.bam -m {decontamination_db_metadata}"
+            )
+
+            extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
+                run_core_mock, 6
+            )
+            assert (
+                extract_decontaminated_nanopore_reads_cl
+                == f"seqkit grep -o {td}/custom_tmp/custom_name.decontaminated.fastq.gz -f {td}/custom_tmp/custom_name.decontaminated.filter/keep.reads {td}/custom_tmp/custom_name.fq.gz"
+            )
+
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert (
                 rasusa_cl
                 == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/custom_tmp/custom_name.subsampled.fastq.gz "
-                f"-i {td}/custom_tmp/custom_name.fq.gz"
+                f"-i {td}/custom_tmp/custom_name.decontaminated.fastq.gz"
             )
 
-            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
             assert (
                 minimap2_cl
                 == f"minimap2 -t 8 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/custom_tmp/custom_name.subsampled.sam "
                 f"{H37RV_genome} {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 
-            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 3)
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 9)
             assert (
                 samtools_sort_cl
                 == f"samtools sort -@ 8 -o {td}/custom_tmp/custom_name.subsampled.sorted.sam {td}/custom_tmp/custom_name.subsampled.sam"
             )
 
-            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 4)
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 10)
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 8 -x -I -Q 13 "
@@ -166,14 +260,14 @@ class TestExternalToolsExecution:
                 f"{td}/custom_tmp/custom_name.subsampled.sorted.sam"
             )
 
-            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_call_cl
                 == f"bcftools call --threads 8 --ploidy 1 -V indels -m -o {td}/custom_tmp/custom_name.subsampled.snps.vcf "
                 f"{td}/custom_tmp/custom_name.subsampled.pileup.vcf"
             )
 
-            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 6)
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 filter_vcf_cl
                 == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
@@ -181,7 +275,7 @@ class TestExternalToolsExecution:
                 f"-o {td}/custom_name.subsampled.snps.filtered.bcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
             )
 
-            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id custom_name --verbose --ignore all "
@@ -194,7 +288,7 @@ class TestExternalToolsExecution:
         ExternalTool._run_core.__name__,
         side_effect=["", "", subprocess.CalledProcessError(1, "minimap2")],
     )
-    def test_partial_execution___minimum_params___minimap2_fails___checks_fail_happens_and_previous_tools_called_correctly(
+    def test_partial_execution___minimum_params___minimap2_map_decontamination_db_fails___checks_fail_happens_and_previous_tools_called_correctly(
         self, run_core_mock, tmp_path
     ):
         runner = CliRunner()
@@ -213,9 +307,13 @@ class TestExternalToolsExecution:
 
             # check if tbpore indeed failed
             assert result.exit_code == 1
-            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 2)
+            map_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 2
+            )
             assert (
-                b"Error calling " + minimap2_cl.encode("utf-8") + b" (return code 1)"
+                b"Error calling "
+                + map_decontamination_db_cl.encode("utf-8")
+                + b" (return code 1)"
                 in result.stdout_bytes
             )
 
@@ -230,16 +328,17 @@ class TestExternalToolsExecution:
                 f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
             )
 
-            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 1)
+            index_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 1
+            )
             assert (
-                rasusa_cl
-                == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.fq.gz"
+                index_decontamination_db_cl
+                == f"minimap2 -I 500M -x map-ont -t 1 -d {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {decontamination_db_fasta}"
             )
 
             assert (
-                minimap2_cl
-                == f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.subsampled.sam "
-                f"{H37RV_genome} {td}/{TMP_NAME}/in.subsampled.fastq.gz"
+                map_decontamination_db_cl
+                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
             )
 
             # check if tmp not removed
