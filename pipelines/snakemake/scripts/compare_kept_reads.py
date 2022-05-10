@@ -10,7 +10,7 @@ sample_to_nb_of_diffs = {}
 for sample in samples:
     h2h_keep_reads = H2H_path/sample/"keep.reads"
     tbpore_keep_reads = tbpore_path/sample/".tbpore"/f"{sample}.decontaminated.filter/keep.reads"
-    diff_out = subprocess.check_output(f"diff --suppress-common-lines -y <(sort {h2h_keep_reads}) <(sort {tbpore_keep_reads})  | wc -l")
+    diff_out = subprocess.check_output(f"diff --suppress-common-lines -y <(sort {h2h_keep_reads}) <(sort {tbpore_keep_reads})  | wc -l", shell=True)
     nb_of_diffs = int(diff_out.strip())
     sample_to_nb_of_diffs[sample] = nb_of_diffs
 
