@@ -9,9 +9,10 @@ mykrobe:
 rasusa:
   params: "-c 150 -g 4411532 -s 88"
 
+decom_DB:
+  url: "<TODO add url of decom DB>"
+
 minimap2:
-  index_decom_DB:
-    params: "-I 500M -x map-ont"
   map_to_decom_DB:
     params: "-aL2 -x map-ont"
   map:
