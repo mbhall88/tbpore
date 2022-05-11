@@ -217,7 +217,7 @@ def main(
         input=f"{decontamination_db_index} {infile}",
         output=f"-o {decontaminated_sam}",
         params=f"{config['minimap2']['map_to_decom_DB']['params']} "
-               f"--split-prefix {outdir}/{name}.tbpore.remove_contam.sp -t {threads}",
+        f"--split-prefix {tmp/name}.tbpore.remove_contam.sp -t {threads}",
         logdir=logdir,
     )
 
