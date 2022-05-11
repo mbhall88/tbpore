@@ -44,16 +44,8 @@ class TestExternalToolsExecution:
             # ensure all tools were called in the correct order and with the correct parameters
             assert run_core_mock.call_count == 14
 
-            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
-            assert (
-                mykrobe_cl
-                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 "
-                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
-                f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
-            )
-
             index_decontamination_db_cl = self.get_command_line_from_mock(
-                run_core_mock, 1
+                run_core_mock, 0
             )
             assert (
                 index_decontamination_db_cl
@@ -61,15 +53,15 @@ class TestExternalToolsExecution:
             )
 
             map_decontamination_db_cl = self.get_command_line_from_mock(
-                run_core_mock, 2
+                run_core_mock, 1
             )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
+                == f"minimap2 -aL2 -x map-ont --split-prefix {td}/{TMP_NAME}/in.tbpore.remove_contam.sp -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
             )
 
             sort_decontaminated_sam_cl = self.get_command_line_from_mock(
-                run_core_mock, 3
+                run_core_mock, 2
             )
             assert (
                 sort_decontaminated_sam_cl
@@ -77,31 +69,39 @@ class TestExternalToolsExecution:
             )
 
             index_sorted_decontaminated_bam_cl = self.get_command_line_from_mock(
-                run_core_mock, 4
+                run_core_mock, 3
             )
             assert (
                 index_sorted_decontaminated_bam_cl
                 == f"samtools index -@ 1 {td}/{TMP_NAME}/in.decontaminated.sorted.bam"
             )
 
-            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 4)
             assert (
                 filter_contamination_cl
                 == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/{TMP_NAME}/in.decontaminated.filter -i {td}/{TMP_NAME}/in.decontaminated.sorted.bam -m {decontamination_db_metadata}"
             )
 
             extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
-                run_core_mock, 6
+                run_core_mock, 5
             )
             assert (
                 extract_decontaminated_nanopore_reads_cl
                 == f"seqkit grep -o {td}/{TMP_NAME}/in.decontaminated.fastq.gz -f {td}/{TMP_NAME}/in.decontaminated.filter/keep.reads {td}/{TMP_NAME}/in.fq.gz"
             )
 
-            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 rasusa_cl
                 == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.decontaminated.fastq.gz"
+            )
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                mykrobe_cl
+                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 "
+                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
+                f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
             minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
@@ -178,16 +178,8 @@ class TestExternalToolsExecution:
             # ensure all tools were called in the correct order and with the correct parameters
             assert run_core_mock.call_count == 14
 
-            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
-            assert (
-                mykrobe_cl
-                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} -e 0.08 "
-                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
-                f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.fq.gz"
-            )
-
             index_decontamination_db_cl = self.get_command_line_from_mock(
-                run_core_mock, 1
+                run_core_mock, 0
             )
             assert (
                 index_decontamination_db_cl
@@ -195,15 +187,15 @@ class TestExternalToolsExecution:
             )
 
             map_decontamination_db_cl = self.get_command_line_from_mock(
-                run_core_mock, 2
+                run_core_mock, 1
             )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 8 -o {td}/custom_tmp/custom_name.decontaminated.sam {td}/custom_tmp/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/custom_tmp/custom_name.fq.gz"
+                == f"minimap2 -aL2 -x map-ont --split-prefix {td}/custom_tmp/custom_name.tbpore.remove_contam.sp -t 8 -o {td}/custom_tmp/custom_name.decontaminated.sam {td}/custom_tmp/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/custom_tmp/custom_name.fq.gz"
             )
 
             sort_decontaminated_sam_cl = self.get_command_line_from_mock(
-                run_core_mock, 3
+                run_core_mock, 2
             )
             assert (
                 sort_decontaminated_sam_cl
@@ -211,32 +203,40 @@ class TestExternalToolsExecution:
             )
 
             index_sorted_decontaminated_bam_cl = self.get_command_line_from_mock(
-                run_core_mock, 4
+                run_core_mock, 3
             )
             assert (
                 index_sorted_decontaminated_bam_cl
                 == f"samtools index -@ 8 {td}/custom_tmp/custom_name.decontaminated.sorted.bam"
             )
 
-            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 5)
+            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 4)
             assert (
                 filter_contamination_cl
                 == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/custom_tmp/custom_name.decontaminated.filter -i {td}/custom_tmp/custom_name.decontaminated.sorted.bam -m {decontamination_db_metadata}"
             )
 
             extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
-                run_core_mock, 6
+                run_core_mock, 5
             )
             assert (
                 extract_decontaminated_nanopore_reads_cl
                 == f"seqkit grep -o {td}/custom_tmp/custom_name.decontaminated.fastq.gz -f {td}/custom_tmp/custom_name.decontaminated.filter/keep.reads {td}/custom_tmp/custom_name.fq.gz"
             )
 
-            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            rasusa_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 rasusa_cl
                 == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/custom_tmp/custom_name.subsampled.fastq.gz "
                 f"-i {td}/custom_tmp/custom_name.decontaminated.fastq.gz"
+            )
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                mykrobe_cl
+                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} -e 0.08 "
+                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
+                f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 
             minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
@@ -307,12 +307,12 @@ class TestExternalToolsExecution:
 
             # check if tbpore indeed failed
             assert result.exit_code == 1
-            map_decontamination_db_cl = self.get_command_line_from_mock(
+            sort_decontaminated_sam_cl = self.get_command_line_from_mock(
                 run_core_mock, 2
             )
             assert (
                 b"Error calling "
-                + map_decontamination_db_cl.encode("utf-8")
+                + sort_decontaminated_sam_cl.encode("utf-8")
                 + b" (return code 1)"
                 in result.stdout_bytes
             )
@@ -320,25 +320,25 @@ class TestExternalToolsExecution:
             # check if all tools until minimap2 were called correctly
             assert run_core_mock.call_count == 3
 
-            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 0)
-            assert (
-                mykrobe_cl
-                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 "
-                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
-                f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.fq.gz"
-            )
-
             index_decontamination_db_cl = self.get_command_line_from_mock(
-                run_core_mock, 1
+                run_core_mock, 0
             )
             assert (
                 index_decontamination_db_cl
                 == f"minimap2 -I 500M -x map-ont -t 1 -d {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {decontamination_db_fasta}"
             )
 
+            map_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 1
+            )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
+                == f"minimap2 -aL2 -x map-ont --split-prefix {td}/{TMP_NAME}/in.tbpore.remove_contam.sp -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {td}/{TMP_NAME}/tbpore.remove_contam.fa.gz.map-ont.mmi {td}/{TMP_NAME}/in.fq.gz"
+            )
+
+            assert (
+                sort_decontaminated_sam_cl
+                == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.decontaminated.sorted.bam {td}/{TMP_NAME}/in.decontaminated.sam"
             )
 
             # check if tmp not removed

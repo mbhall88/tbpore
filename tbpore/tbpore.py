@@ -202,17 +202,6 @@ def main(
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
 
-    report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
-    mykrobe_output = f"{outdir}/{name}.mykrobe.json"
-    mykrobe = ExternalTool(
-        tool="mykrobe",
-        input=f"-i {infile}",
-        output=f"-o {mykrobe_output}",
-        params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
-        f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
-        logdir=logdir,
-    )
-
     decontamination_db_index = str(tmp / "tbpore.remove_contam.fa.gz.map-ont.mmi")
     index_decontamination_db = ExternalTool(
         tool="minimap2",
@@ -278,6 +267,17 @@ def main(
         logdir=logdir,
     )
 
+    report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
+    mykrobe_output = f"{outdir}/{name}.mykrobe.json"
+    mykrobe = ExternalTool(
+        tool="mykrobe",
+        input=f"-i {subsampled_reads}",
+        output=f"-o {mykrobe_output}",
+        params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
+        f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
+        logdir=logdir,
+    )
+
     sam_file = f"{tmp}/{name}.subsampled.sam"
     minimap = ExternalTool(
         tool="minimap2",
@@ -339,7 +339,6 @@ def main(
     )
 
     tools_to_run = [
-        mykrobe,
         index_decontamination_db,
         map_decontamination_db,
         sort_decontaminated_sam,
@@ -347,6 +346,7 @@ def main(
         filter_contamination,
         extract_decontaminated_nanopore_reads,
         rasusa,
+        mykrobe,
         minimap,
         samtools_sort,
         bcftools_mpileup,
