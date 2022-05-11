@@ -9,6 +9,7 @@ def get_samples(glob_pattern):
 
 
 def get_var_with_no_qual(variant):
+    variant = str(variant)
     split_variant = variant.split("\t")
     split_variant_with_no_qual = split_variant[:5] + split_variant[6:]
     return "\t".join(split_variant_with_no_qual)
