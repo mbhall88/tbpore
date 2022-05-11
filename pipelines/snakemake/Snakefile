@@ -57,7 +57,7 @@ rule compare_h2h_and_tbpore_bcfs:
         mem_mb=lambda wildcards, attempt: 1000 * attempt
     log:
         "logs/compare_h2h_and_tbpore_bcfs.log"
-    script: "scripts/compare_h2h_and_tbpore_bcfs.py"
+    script: "scripts/compare_H2H_and_tbpore_bcfs.py"
 
 
 rule compare_h2h_and_tbpore_mykrobe:
