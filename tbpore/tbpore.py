@@ -311,7 +311,7 @@ def main(
         logdir=logdir,
     )
 
-    filtered_snps_file = f"{outdir}/{name}.subsampled.snps.filtered.bcf"
+    filtered_snps_file = f"{outdir}/{name}.snps.filtered.bcf"
     filtering_options = " ".join(
         (
             config["filter"]["params"],
