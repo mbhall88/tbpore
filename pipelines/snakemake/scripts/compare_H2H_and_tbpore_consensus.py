@@ -16,7 +16,7 @@ def compare(h2h_consensus_glob_pattern, tbpore_glob_pattern, output):
     for sample in common_samples:
         h2h_consensus = h2h_samples[sample]
         tbpore_consensus = tbpore_samples[sample]
-        subprocess.check_call(f"diff -qs {h2h_consensus} {tbpore_consensus} >> {output}")
+        subprocess.check_call(f"diff -qs {h2h_consensus} {tbpore_consensus} >> {output}", shell=True)
 
 
 def __main__():
