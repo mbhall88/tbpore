@@ -1,5 +1,6 @@
 from glob import glob
 from pathlib import Path
+
 from cyvcf2 import VCF
 
 
@@ -28,11 +29,19 @@ def compare(h2h_bcf_glob_pattern, tbpore_glob_pattern, output):
             for h2h_variant, tbpore_variant in zip(h2h_bcf, tbpore_bcf):
                 h2h_variant_with_no_qual = get_var_with_no_qual(h2h_variant)
                 tbpore_variant_with_no_qual = get_var_with_no_qual(tbpore_variant)
-                variants_are_different = h2h_variant_with_no_qual != tbpore_variant_with_no_qual
+                variants_are_different = (
+                    h2h_variant_with_no_qual != tbpore_variant_with_no_qual
+                )
                 if variants_are_different:
-                    print(f"Different VCF records in sample {sample}:\n{h2h_variant}{tbpore_variant}", file=output_fh)
+                    print(
+                        f"Different VCF records in sample {sample}:\n{h2h_variant}{tbpore_variant}",
+                        file=output_fh,
+                    )
                     nb_of_different_variants += 1
-            print(f"Sample {sample}: {nb_of_different_variants} different variants", file=output_fh)
+            print(
+                f"Sample {sample}: {nb_of_different_variants} different variants",
+                file=output_fh,
+            )
 
 
 def __main__():
