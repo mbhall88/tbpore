@@ -20,6 +20,7 @@ from tbpore.tbpore import (
 )
 
 
+@patch("tbpore.tbpore.ensure_decontamination_db_is_available")
 class TestExternalToolsExecution:
     @staticmethod
     def get_command_line_from_mock(mock, index):
@@ -27,7 +28,7 @@ class TestExternalToolsExecution:
 
     @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___minimum_params___check_all_external_tools_are_called_correctly(
-        self, run_core_mock, tmp_path
+        self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
     ):
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -142,7 +143,7 @@ class TestExternalToolsExecution:
 
     @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___several_params_affecting_tools_command_lines___check_all_external_tools_are_called_correctly(
-        self, run_core_mock, tmp_path
+        self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
     ):
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -273,7 +274,7 @@ class TestExternalToolsExecution:
         side_effect=["", "", subprocess.CalledProcessError(1, "minimap2")],
     )
     def test_partial_execution___minimum_params___index_sorted_decontaminated_bam_fails___checks_fail_happens_and_previous_tools_called_correctly(
-        self, run_core_mock, tmp_path
+        self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
     ):
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -331,8 +332,11 @@ class TestExternalToolsExecution:
 
 
 @patch.object(ExternalTool, ExternalTool._run_core.__name__)
+@patch("tbpore.tbpore.ensure_decontamination_db_is_available")
 class TestCLICleanup:
-    def test_no_cleanup(self, run_core_mock, tmp_path):
+    def test_no_cleanup(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["--no-cleanup", "-S", sample]
         runner = CliRunner()
@@ -349,7 +353,9 @@ class TestCLICleanup:
             tbpore_tmp = td / TMP_NAME
             assert tbpore_tmp.exists()
 
-    def test_with_cleanup(self, run_core_mock, tmp_path):
+    def test_with_cleanup(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["--cleanup", "-S", sample]
         runner = CliRunner()
@@ -368,15 +374,20 @@ class TestCLICleanup:
 
 
 @patch.object(ExternalTool, ExternalTool._run_core.__name__)
+@patch("tbpore.tbpore.ensure_decontamination_db_is_available")
 class TestInputConcatenation:
-    def test_no_input___fails(self, run_core_mock, tmp_path):
+    def test_no_input___fails(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path):
             result = runner.invoke(main, [])
             assert result.exit_code == 2
             assert b"No INPUT files given" in result.stdout_bytes
 
-    def test_single_file(self, run_core_mock, tmp_path):
+    def test_single_file(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -397,7 +408,9 @@ class TestInputConcatenation:
                 actual = fp.read()
             assert actual == expected_fq
 
-    def test_single_gz_file(self, run_core_mock, tmp_path):
+    def test_single_gz_file(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -418,7 +431,9 @@ class TestInputConcatenation:
                 actual = fp.read()
             assert actual == expected_fq
 
-    def test_multiple_files(self, run_core_mock, tmp_path):
+    def test_multiple_files(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -445,7 +460,9 @@ class TestInputConcatenation:
             expected = expected_fq1 + expected_fq2
             assert sorted(actual) == sorted(expected)
 
-    def test_input_is_empty_dir___error_out(self, run_core_mock, tmp_path):
+    def test_input_is_empty_dir___error_out(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -460,7 +477,9 @@ class TestInputConcatenation:
                 in result.stdout_bytes
             )
 
-    def test_input_is_dir(self, run_core_mock, tmp_path):
+    def test_input_is_dir(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -487,7 +506,9 @@ class TestInputConcatenation:
             expected = expected_fq1 + expected_fq2
             assert sorted(actual) == sorted(expected)
 
-    def test_input_is_dir_and_one_file_has_bad_suffix(self, run_core_mock, tmp_path):
+    def test_input_is_dir_and_one_file_has_bad_suffix(
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
+    ):
         sample = "sam"
         opts = ["-D", "-S", sample]
         runner = CliRunner()
@@ -515,7 +536,7 @@ class TestInputConcatenation:
             assert sorted(actual) == sorted(expected)
 
     def test_input_is_dir_and_files_in_dir___ensure_duplication_does_not_happen(
-        self, run_core_mock, tmp_path
+        self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
         opts = ["-D", "-S", sample]

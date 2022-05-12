@@ -86,6 +86,18 @@ def setup_logging(verbose: bool, quiet: bool) -> None:
     logger.add(sys.stderr, level=log_lvl, format=log_fmt)
 
 
+def ensure_decontamination_db_is_available(
+    config: Dict[Any, Any], ctx: click.Context
+) -> None:
+    if not decontamination_db_index.exists():
+        logger.error(
+            f"Decontamination DB {decontamination_db_index} does not exist, "
+            f"please download it at {config['decom_DB']['url']} and put it at {decontamination_db_index} "
+            f"before running tbpore"
+        )
+        ctx.exit(2)
+
+
 @click.command()
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -181,14 +193,7 @@ def main(
 
     config = load_config_file()
 
-    # check if decontamination DB is available
-    if not decontamination_db_index.exists():
-        logger.error(
-            f"Decontamination DB {decontamination_db_index} does not exist, "
-            f"please download it at {config['decom_DB']['url']} and put it at {decontamination_db_index} "
-            f"before running tbpore"
-        )
-        ctx.exit(2)
+    ensure_decontamination_db_is_available(config, ctx)
 
     # create dirs for the run
     outdir.mkdir(exist_ok=True, parents=True)
