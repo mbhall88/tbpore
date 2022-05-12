@@ -1,3 +1,4 @@
+import gzip
 import logging
 from enum import Enum
 from pathlib import Path
@@ -43,13 +44,14 @@ class Classification(Enum):
 
 class Classifier:
     def __init__(self, metadata_file: str):
-        self.metadata = pd.read_table(
-            metadata_file,
-            header=None,
-            names=["organism", IS_CONTAM_COL, "accession"],
-            index_col="accession",
-            dtype={IS_CONTAM_COL: "bool"},
-        )
+        with gzip.open(metadata_file, "rt") as metadata_file_fh:
+            self.metadata = pd.read_table(
+                metadata_file_fh,
+                header=None,
+                names=["organism", IS_CONTAM_COL, "accession"],
+                index_col="accession",
+                dtype={IS_CONTAM_COL: "bool"},
+            )
 
     def classify(self, record: pysam.AlignedSegment) -> Classification:
         if record.is_unmapped:
