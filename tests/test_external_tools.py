@@ -78,11 +78,12 @@ class TestExternalTools:
         for file in logsdir.iterdir():
             file.unlink()
 
+        python_script = str(repo_root / "tests/helpers/run_test.py")
         external_tool = ExternalTool(
             sys.executable,
             "input",
             "output",
-            str(repo_root / "tests/helpers/run_test.py"),
+            python_script,
             logsdir,
         )
 
@@ -96,4 +97,7 @@ class TestExternalTools:
         err_file = glob.glob(f"{logsdir}/*.err")[0]
         with open(err_file) as err_file_fh:
             lines = err_file_fh.readlines()
-            assert lines == ["err\n"]
+            assert lines == [
+                "err\n",
+                f"Command line: {sys.executable} {python_script} output input\n",
+            ]
