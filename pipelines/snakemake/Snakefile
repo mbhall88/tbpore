@@ -99,6 +99,6 @@ rule tbpore_cluster:
         input_glob = f"{tbpore_process_outdir}/*/*.consensus.fa"
     shell:
         """
-        tbpore cluster --threshold {wildcards.threshold} -o {params.clusters_outdir} --threads {threads} --no-cleanup
+        tbpore cluster --threshold {wildcards.threshold} -o {params.clusters_outdir} --threads {threads} --no-cleanup \
         {params.input_glob}
         """
