@@ -75,7 +75,7 @@ def get_clusters(psdm_matrix: Path, clustering_threshold: int) -> List[Set[str]]
 def get_formatted_clusters(clusters: List[Set[str]]) -> str:
     clusters_as_strs = []
     for cluster_index, cluster in enumerate(clusters):
-        cluster_as_str = '\t'.join(cluster)
+        cluster_as_str = "\t".join(cluster)
         cluster_description = f"Cluster #{cluster_index+1}:\t{cluster_as_str}"
         clusters_as_strs.append(cluster_description)
     return "\n".join(clusters_as_strs)
