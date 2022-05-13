@@ -96,9 +96,9 @@ rule tbpore_cluster:
         "logs/tbpore_cluster_threshold_{threshold}.log"
     params:
         clusters_outdir = lambda wildcards: f"{config['output_dir']}/clusters_threshold_{wildcards.threshold}",
-        input_glob = f"{tbpore_process_outdir}/*/*.consensus.fa"
+        inputs = glob.glob(f"{tbpore_process_outdir}/*/*.consensus.fa")
     shell:
         """
         tbpore cluster --threshold {wildcards.threshold} -o {params.clusters_outdir} --threads {threads} --no-cleanup
-        {params.input_glob}
+        {params.inputs}
         """
