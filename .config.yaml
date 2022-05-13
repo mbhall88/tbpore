@@ -56,3 +56,6 @@ filter:
 
 consensus:
   params: "--verbose --ignore all --het-default none"
+
+psdm:
+  params: "--ignore-case --quiet --sort"

@@ -1,9 +1,11 @@
 import hashlib
 import shlex
 import subprocess
+import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Tuple
 
+import click
 from loguru import logger
 
 
@@ -39,3 +41,24 @@ class ExternalTool:
     @staticmethod
     def _run_core(command: List[str], stdout_fh, stderr_fh) -> None:
         subprocess.check_call(command, stdout=stdout_fh, stderr=stderr_fh)
+
+    @staticmethod
+    def run_tools(
+        tools_to_run: Tuple["ExternalTool", ...], ctx: Optional[click.Context] = None
+    ) -> None:
+        for tool in tools_to_run:
+            try:
+                tool.run()
+            except subprocess.CalledProcessError as error:
+                logger.error(
+                    f"Error calling {tool.command_as_str} (return code {error.returncode})"
+                )
+                logger.error(f"Please check stdout log file: {tool.out_log}")
+                logger.error(f"Please check stderr log file: {tool.err_log}")
+                logger.error("Temporary files are preserved for debugging")
+                logger.error("Exiting...")
+
+                if ctx:
+                    ctx.exit(1)
+                else:
+                    sys.exit(1)
