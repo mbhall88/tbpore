@@ -88,12 +88,12 @@ rule tbpore_cluster:
     input:
         all_tbpore_outputs = expand(f"{tbpore_process_outdir}/{{sample}}", sample=config['samples'])
     output:
-        clusters = f"{config['output_dir']}/clusters_threshold_{threshold}/clusters.txt",
+        clusters = f"{config['output_dir']}/clusters_threshold_{{threshold}}/clusters.txt",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt:4000 * attempt
     log:
-        "logs/tbpore_cluster.log"
+        "logs/tbpore_cluster_threshold_{threshold}.log"
     params:
         clusters_outdir = lambda wildcards: f"{config['output_dir']}/clusters_threshold_{wildcards.threshold}",
         input_glob = f"{tbpore_process_outdir}/*/*.consensus.fa"
