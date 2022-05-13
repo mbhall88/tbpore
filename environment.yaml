@@ -18,3 +18,4 @@ dependencies:
   - bcftools=1.13
   - minimap2=2.22
   - seqkit=2.0.0
+  - psdm=0.1.0
