@@ -13,7 +13,9 @@ rule all:
 
 
 def get_input(wildcards):
-    reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
+    reads = []
+    for base_reads_dir in config['base_reads_dirs']:
+        reads.extend(glob.glob(f"{base_reads_dir}/{wildcards.sample}.nanopore.fq.gz"))
     assert len(reads) == 1
     return reads
 
