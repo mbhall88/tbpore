@@ -5,7 +5,7 @@ Totally based on https://github.com/mbhall88/head_to_head_pipeline/blob/bcbc8497
 
 from itertools import chain
 from pathlib import Path
-from typing import List, Set
+from typing import Generator, List, Set
 
 import networkx as nx
 import numpy as np
@@ -64,15 +64,30 @@ def matrix_to_graph(
     return graph
 
 
-def get_clusters(psdm_matrix: Path, clustering_threshold: int) -> List[Set[str]]:
+def sort_clusters(clusters: Generator[Set[str], None, None]) -> List[List[str]]:
+    # gets a list of sorted clusters
+    clusters = [sorted(list(cluster)) for cluster in clusters]
+
+    # sort by size and then IDs (in case of draws)
+    clusters = sorted(clusters, key=lambda cluster: (-len(cluster), str(cluster)))
+
+    return clusters
+
+
+def get_clusters(psdm_matrix: Path, clustering_threshold: int) -> List[List[str]]:
     ont_mtx = load_matrix(psdm_matrix, name="nanopore")
     ont_graph = matrix_to_graph(
         ont_mtx, threshold=clustering_threshold, include_singletons=True
     )
-    return list(nx.connected_components(ont_graph))
+
+    clusters = nx.connected_components(ont_graph)
+
+    # sort clusters to guarantee determinism
+    clusters = sort_clusters(clusters)
+    return clusters
 
 
-def get_formatted_clusters(clusters: List[Set[str]]) -> str:
+def get_formatted_clusters(clusters: List[List[str]]) -> str:
     clusters_as_strs = []
     for cluster_index, cluster in enumerate(clusters):
         cluster_as_str = "\t".join(cluster)
