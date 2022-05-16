@@ -9,12 +9,28 @@ mykrobe:
 rasusa:
   params: "-c 150 -g 4411532 -s 88"
 
+decom_DB:
+  url: "ftp://ftp-private.ebi.ac.uk/tbpore/0.1.0/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi.gz"
+
 minimap2:
-  params: "-a -L --sam-hit-only --secondary=no -x map-ont"
+  map_to_decom_DB:
+    params: "-aL2 -x map-ont"
+  map:
+    params: "-a -L --sam-hit-only --secondary=no -x map-ont"
 
 samtools:
+  sort_decom_DB:
+    params: ""
+  index_decom_DB:
+    params: ""
   sort:
     params: ""
+
+filter_contamination:
+  params: "--verbose --ignore-secondary"
+
+extract_decontaminated_nanopore_reads:
+  params: "grep"
 
 bcftools:
   mpileup:

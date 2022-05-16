@@ -31,15 +31,15 @@ cd tbpore
 conda env create -f environment.yaml && conda activate tbpore  # install dependencies
 just install  # install tbpore
 just check  # checks installation is fine
-# if you want to run tbpore on an example isolate
+# if you want to run tbpore on an example isolate (will require you to download the decontamination DB index)
 scripts/run_sample_example.sh
 ```
 
 # Performance
 
-Benchmarked on 109 TB Madagascar ONT samples with 1 thread:
-* Runtime: `1361`s avg (`550`s SD), max `2294`s, min `102`s (s = seconds);
-* RAM: `1266`MB avg (`394`MB SD), max `1914` MB, min `527` MB (MB = Megabytes);
+Benchmarked on 91 TB Madagascar ONT samples with 1 thread:
+* Runtime: `2255`s avg, `3805`s max (s = seconds);
+* RAM: `12.4`GB avg, `13.1`GB max (GB = Gigabytes);
 
 # Usage
 

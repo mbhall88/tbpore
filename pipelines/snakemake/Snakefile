@@ -1,0 +1,77 @@
+import glob
+
+configfile: "config.yaml"
+
+rule all:
+    input:
+        f"{config['output_dir']}/consensus_comparison.out",
+        f"{config['output_dir']}/bcfs_comparison.out",
+        f"{config['output_dir']}/mykrobe_comparison.out",
+        f"{config['output_dir']}/mykrobe_comparison.simple.out",
+
+def get_input(wildcards):
+    reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
+    assert len(reads) == 1
+    return reads
+
+rule run_tbpore:
+    input:
+        get_input
+    output:
+        directory(f"{config['output_dir']}/{{sample}}")
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 20000 * attempt
+    log:
+        "logs/run_tbpore_{sample}.log"
+    shell:
+        "tbpore --no-cleanup -o {output} {input}"
+
+
+rule compare_h2h_and_tbpore_consensus:
+    input:
+        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+    output:
+        consensus_comparison = f"{config['output_dir']}/consensus_comparison.out"
+    params:
+        tbpore_output = config['output_dir'],
+        h2h_consensus_glob_pattern = config['h2h_consensus_glob_pattern'],
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/compare_h2h_and_tbpore_consensus.log"
+    script: "scripts/compare_H2H_and_tbpore_consensus.py"
+
+
+rule compare_h2h_and_tbpore_bcfs:
+    input:
+        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+    output:
+        bcfs_comparison = f"{config['output_dir']}/bcfs_comparison.out"
+    params:
+        tbpore_output = config['output_dir'],
+        h2h_bcf_glob_pattern = config['h2h_bcf_glob_pattern'],
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/compare_h2h_and_tbpore_bcfs.log"
+    script: "scripts/compare_H2H_and_tbpore_bcfs.py"
+
+
+rule compare_h2h_and_tbpore_mykrobe:
+    input:
+        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+    output:
+        mykrobe_comparison = f"{config['output_dir']}/mykrobe_comparison.out",
+        mykrobe_comparison_simple = f"{config['output_dir']}/mykrobe_comparison.simple.out"
+    params:
+        tbpore_output = config['output_dir'],
+        h2h_mykrobe_glob_pattern = config['h2h_mykrobe_glob_pattern'],
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/compare_h2h_and_tbpore_mykrobe.log"
+    script: "scripts/compare_H2H_and_tbpore_mykrobe.py"
