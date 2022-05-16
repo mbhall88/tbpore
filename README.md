@@ -32,7 +32,7 @@ conda env create -f environment.yaml && conda activate tbpore  # install depende
 just install  # install tbpore
 just check  # checks installation is fine
 # if you want to run tbpore on an example isolate (will require you to download the decontamination DB index)
-scripts/run_sample_example.sh
+just test-run
 ```
 
 # Performance
