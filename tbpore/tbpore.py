@@ -130,7 +130,7 @@ def setup_dirs(outdir: Path, tmp: Path) -> Tuple[Path, Path]:
     cls=Mutex,
     not_required_if=["verbose"],
 )
-def general_args_group(
+def main_cli(
     verbose: bool,
     quiet: bool,
 ):
@@ -138,7 +138,7 @@ def general_args_group(
     logger.info(f"Welcome to TBpore version {__version__}")
 
 
-@click.command()
+@main_cli.command()
 @click.option(
     "-o",
     "--outdir",
@@ -377,7 +377,7 @@ def process(
     logger.success("Done")
 
 
-@click.command()
+@main_cli.command()
 @click.option(
     "-T",
     "--threshold",
@@ -470,9 +470,7 @@ def cluster(
 
 
 def main():
-    general_args_group.add_command(process)
-    general_args_group.add_command(cluster)
-    general_args_group()
+    main_cli()
 
 
 if __name__ == "__main__":
