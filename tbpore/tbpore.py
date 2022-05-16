@@ -20,7 +20,7 @@ from tbpore import (
     external_scripts_dir,
 )
 from tbpore.cli import Mutex
-from tbpore.clustering import get_clusters, get_formatted_clusters
+from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
@@ -458,12 +458,9 @@ def cluster(
     )
     ExternalTool.run_tools((psdm,), ctx)
 
-    logger.info(f"Producing clusters...")
-    clusters = get_clusters(psdm_matrix, threshold)
-    clusters_file = outdir / "clusters.txt"
-    with open(clusters_file, "w") as clusters_fh:
-        print(get_formatted_clusters(clusters), file=clusters_fh)
-    logger.info(f"Done producing clusters")
+    logger.info("Producing clusters...")
+    produce_clusters(psdm_matrix, threshold, outdir)
+    logger.info("Done producing clusters")
 
     if cleanup:
         logger.info("Cleaning up temporary files...")

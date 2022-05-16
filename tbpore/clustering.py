@@ -94,3 +94,10 @@ def get_formatted_clusters(clusters: List[List[str]]) -> str:
         cluster_description = f"Cluster #{cluster_index+1}:\t{cluster_as_str}"
         clusters_as_strs.append(cluster_description)
     return "\n".join(clusters_as_strs)
+
+
+def produce_clusters(psdm_matrix: Path, threshold: int, outdir: Path) -> None:
+    clusters = get_clusters(psdm_matrix, threshold)
+    clusters_file = outdir / "clusters.txt"
+    with open(clusters_file, "w") as clusters_fh:
+        print(get_formatted_clusters(clusters), file=clusters_fh)
