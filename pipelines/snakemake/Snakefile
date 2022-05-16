@@ -8,8 +8,8 @@ rule all:
         f"{config['output_dir']}/bcfs_comparison.out",
         f"{config['output_dir']}/mykrobe_comparison.out",
         f"{config['output_dir']}/mykrobe_comparison.simple.out",
-        f"{config['output_dir']}/clusters_threshold_6/clusters.txt",
-        f"{config['output_dir']}/clusters_threshold_12/clusters.txt",
+        f"{config['output_dir']}/clusters_threshold_5/clusters.txt",
+        f"{config['output_dir']}/clusters_threshold_10/clusters.txt",
 
 
 def get_input(wildcards):
