@@ -11,6 +11,17 @@
 
 **⚠️WORK IN PROGRESS⚠️**
 
+# Synopsis
+
+`tbpore` is a tool with two main goals.
+First is to process Nanopore Mycobacterium tuberculosis sequencing data to describe variants with respect to the
+canonical TB strain H37Rv and predict antibiotic resistance (command `tbpore process`).
+Variant description is done by decontaminating reads, calling variants with
+[bcftools](https://github.com/samtools/bcftools) and filtering variants.
+Antibiotic resistance is predicted with [mykrobe](https://github.com/Mykrobe-tools/mykrobe).
+Second, `tbpore` can be used to cluster TB samples based on their genotyping and a given distance threshold (command
+`tbpore cluster`).
+
 # Installation
 
 ## conda
