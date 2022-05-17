@@ -10,7 +10,7 @@ rasusa:
   params: "-c 150 -g 4411532 -s 88"
 
 decom_DB:
-  url: "ftp://ftp-private.ebi.ac.uk/tbpore/0.1.0/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi.gz"
+  url: "https://github.com/mbhall88/tbpore#configuring-the-decontamination-database-index"
 
 minimap2:
   map_to_decom_DB:

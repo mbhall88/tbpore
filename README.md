@@ -58,7 +58,8 @@ running `conda activate tbpore` and then `tbpore` will be available.
 When you run your first `tbpore process`, you will get this error:
 ```
 ERROR    | Decontamination DB index tbpore/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi does not
-exist, please follow the instructions at <TODO: add url> to download and configure it before running tbpore
+exist, please follow the instructions at https://github.com/mbhall88/tbpore#configuring-the-decontamination-database-index
+to download and configure it before running tbpore
 ```
 This means you need to download the [minimap2](https://github.com/lh3/minimap2) decontamination database index before
 proceeding. We did not include this index in this repo, as it is too heavy. Right now this index is private and can be
