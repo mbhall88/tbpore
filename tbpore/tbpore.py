@@ -92,7 +92,7 @@ def ensure_decontamination_db_is_available(
     if not decontamination_db_index.exists():
         logger.error(
             f"Decontamination DB index {decontamination_db_index} does not exist, "
-            f"please download it at {config['decom_DB']['url']} and put it at {decontamination_db_index} "
+            f"please follow the instructions at {config['decom_DB']['url']} to download and configure it "
             f"before running tbpore"
         )
         ctx.exit(2)
