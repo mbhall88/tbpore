@@ -94,9 +94,17 @@ just test-run
 
 # Performance
 
-Benchmarked on 91 TB Madagascar ONT samples with 1 thread:
-* Runtime: `2255`s avg, `3805`s max (s = seconds);
+## `tbpore process`
+
+Benchmarked on 151 TB ONT samples with 1 thread:
+* Runtime: `2103`s avg, `4048`s max (s = seconds);
 * RAM: `12.4`GB avg, `13.1`GB max (GB = Gigabytes);
+
+## `tbpore cluster`
+
+Clustering 151 TB ONT samples:
+* Runtime: `286`s;
+* RAM: `<1`GB;
 
 # Usage
 
