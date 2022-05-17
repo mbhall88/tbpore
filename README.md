@@ -24,9 +24,11 @@ Second, `tbpore` can be used to cluster TB samples based on their genotyping and
 
 # Installation
 
+<!---
 ## conda
 
 `conda install tbpore`
+-->
 
 ## local
 
