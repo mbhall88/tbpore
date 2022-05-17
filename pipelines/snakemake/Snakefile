@@ -8,33 +8,40 @@ rule all:
         f"{config['output_dir']}/bcfs_comparison.out",
         f"{config['output_dir']}/mykrobe_comparison.out",
         f"{config['output_dir']}/mykrobe_comparison.simple.out",
+        f"{config['output_dir']}/clusters_threshold_5/clusters.txt",
+        f"{config['output_dir']}/clusters_threshold_10/clusters.txt",
+
 
 def get_input(wildcards):
-    reads = glob.glob(f"{config['base_reads_dir']}/{wildcards.sample}.nanopore.fq.gz")
+    reads = []
+    for base_reads_dir in config['base_reads_dirs']:
+        reads.extend(glob.glob(f"{base_reads_dir}/{wildcards.sample}.nanopore.fq.gz"))
     assert len(reads) == 1
     return reads
 
+
+tbpore_process_outdir = f"{config['output_dir']}/tbpore_process"
 rule run_tbpore:
     input:
         get_input
     output:
-        directory(f"{config['output_dir']}/{{sample}}")
+        directory(f"{tbpore_process_outdir}/{{sample}}")
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 20000 * attempt
     log:
         "logs/run_tbpore_{sample}.log"
     shell:
-        "tbpore --no-cleanup -o {output} {input}"
+        "tbpore process --no-cleanup -o {output} {input}"
 
 
 rule compare_h2h_and_tbpore_consensus:
     input:
-        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+        all_tbpore_outputs = expand(f"{tbpore_process_outdir}/{{sample}}", sample=config['samples'])
     output:
         consensus_comparison = f"{config['output_dir']}/consensus_comparison.out"
     params:
-        tbpore_output = config['output_dir'],
+        tbpore_output = tbpore_process_outdir,
         h2h_consensus_glob_pattern = config['h2h_consensus_glob_pattern'],
     threads: 1
     resources:
@@ -46,11 +53,11 @@ rule compare_h2h_and_tbpore_consensus:
 
 rule compare_h2h_and_tbpore_bcfs:
     input:
-        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+        all_tbpore_outputs = expand(f"{tbpore_process_outdir}/{{sample}}", sample=config['samples'])
     output:
         bcfs_comparison = f"{config['output_dir']}/bcfs_comparison.out"
     params:
-        tbpore_output = config['output_dir'],
+        tbpore_output = tbpore_process_outdir,
         h2h_bcf_glob_pattern = config['h2h_bcf_glob_pattern'],
     threads: 1
     resources:
@@ -62,12 +69,12 @@ rule compare_h2h_and_tbpore_bcfs:
 
 rule compare_h2h_and_tbpore_mykrobe:
     input:
-        all_tbpore_outputs = expand(f"{config['output_dir']}/{{sample}}", sample=config['samples'])
+        all_tbpore_outputs = expand(f"{tbpore_process_outdir}/{{sample}}", sample=config['samples'])
     output:
         mykrobe_comparison = f"{config['output_dir']}/mykrobe_comparison.out",
         mykrobe_comparison_simple = f"{config['output_dir']}/mykrobe_comparison.simple.out"
     params:
-        tbpore_output = config['output_dir'],
+        tbpore_output = tbpore_process_outdir,
         h2h_mykrobe_glob_pattern = config['h2h_mykrobe_glob_pattern'],
     threads: 1
     resources:
@@ -75,3 +82,23 @@ rule compare_h2h_and_tbpore_mykrobe:
     log:
         "logs/compare_h2h_and_tbpore_mykrobe.log"
     script: "scripts/compare_H2H_and_tbpore_mykrobe.py"
+
+
+rule tbpore_cluster:
+    input:
+        all_tbpore_outputs = expand(f"{tbpore_process_outdir}/{{sample}}", sample=config['samples'])
+    output:
+        clusters = f"{config['output_dir']}/clusters_threshold_{{threshold}}/clusters.txt",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt:4000 * attempt
+    log:
+        "logs/tbpore_cluster_threshold_{threshold}.log"
+    params:
+        clusters_outdir = lambda wildcards: f"{config['output_dir']}/clusters_threshold_{wildcards.threshold}",
+        input_glob = f"{tbpore_process_outdir}/*/*.consensus.fa"
+    shell:
+        """
+        tbpore cluster --threshold {wildcards.threshold} -o {params.clusters_outdir} --threads {threads} --no-cleanup \
+        {params.input_glob}
+        """

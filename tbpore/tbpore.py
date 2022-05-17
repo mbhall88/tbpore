@@ -1,6 +1,5 @@
 import gzip
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict, Tuple
@@ -21,6 +20,7 @@ from tbpore import (
     external_scripts_dir,
 )
 from tbpore.cli import Mutex
+from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
@@ -98,17 +98,22 @@ def ensure_decontamination_db_is_available(
         ctx.exit(2)
 
 
-@click.command()
+def setup_dirs(outdir: Path, tmp: Path) -> Tuple[Path, Path]:
+    """
+    Setups out, tmp, log and cache dirs, and return the paths to tmp and logdirs
+    """
+    outdir.mkdir(exist_ok=True, parents=True)
+    if tmp is None:
+        tmp = outdir / TMP_NAME
+    tmp.mkdir(exist_ok=True, parents=True)
+    logdir = outdir / "logs"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return tmp, logdir
+
+
+@click.group()
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
-@click.option(
-    "-o",
-    "--outdir",
-    help="Directory to place output files",
-    default="tbpore_out",
-    show_default=True,
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
-)
 @click.option(
     "-v",
     "--verbose",
@@ -124,6 +129,23 @@ def ensure_decontamination_db_is_available(
     is_flag=True,
     cls=Mutex,
     not_required_if=["verbose"],
+)
+def main_cli(
+    verbose: bool,
+    quiet: bool,
+):
+    setup_logging(verbose, quiet)
+    logger.info(f"Welcome to TBpore version {__version__}")
+
+
+@main_cli.command()
+@click.option(
+    "-o",
+    "--outdir",
+    help="Directory to place output files",
+    default="tbpore_out",
+    show_default=True,
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
 )
 @click.option(
     "-r", "--recursive", help="Recursively search INPUTS for fastq files", is_flag=True
@@ -169,10 +191,8 @@ def ensure_decontamination_db_is_available(
 )
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
-def main(
+def process(
     ctx: click.Context,
-    verbose: bool,
-    quiet: bool,
     outdir: Path,
     inputs: Tuple[Path, ...],
     recursive: bool,
@@ -182,36 +202,27 @@ def main(
     report_all_mykrobe_calls: bool,
     cleanup: bool,
 ):
-    """Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
+    """Single-sample TB genomic analysis from Nanopore sequencing data
 
     INPUTS: Fastq file(s) and/or a directory containing fastq files. All files will
     be joined into a single fastq file, so ensure they're all part of the same
     sample/isolate.
     """
-    setup_logging(verbose, quiet)
-    logger.info(f"Welcome to TBpore version {__version__}")
+    if not inputs:
+        logger.error("No INPUT files given")
+        ctx.exit(2)
 
     config = load_config_file()
 
     ensure_decontamination_db_is_available(config, ctx)
-
-    # create dirs for the run
-    outdir.mkdir(exist_ok=True, parents=True)
-    if tmp is None:
-        tmp = outdir / TMP_NAME
-    tmp.mkdir(exist_ok=True, parents=True)
-    logdir = outdir / "logs"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-
-    if not inputs:
-        logger.error("No INPUT files given")
-        ctx.exit(2)
 
     if not name:
         name = inputs[0].name.split(".")[0]
         if not name:
             name = "input"
         logger.debug(f"No sample name found; using '{name}'")
+
+    tmp, logdir = setup_dirs(outdir, tmp)
 
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
@@ -342,7 +353,7 @@ def main(
         logdir=logdir,
     )
 
-    tools_to_run = [
+    tools_to_run = (
         map_decontamination_db,
         sort_decontaminated_sam,
         index_sorted_decontaminated_bam,
@@ -356,25 +367,110 @@ def main(
         bcftools_call,
         filter_vcf,
         generate_consensus,
-    ]
-    for tool in tools_to_run:
-        try:
-            tool.run()
-        except subprocess.CalledProcessError as error:
-            logger.error(
-                f"Error calling {tool.command_as_str} (return code {error.returncode})"
-            )
-            logger.error(f"Please check stdout log file: {tool.out_log}")
-            logger.error(f"Please check stderr log file: {tool.err_log}")
-            logger.error("Temporary files are preserved for debugging")
-            logger.error("Exiting...")
-            ctx.exit(1)
+    )
+    ExternalTool.run_tools(tools_to_run, ctx)
 
     if cleanup:
         logger.info("Cleaning up temporary files...")
         shutil.rmtree(tmp)
 
     logger.success("Done")
+
+
+@main_cli.command()
+@click.option(
+    "-T",
+    "--threshold",
+    help="Clustering threshold",
+    type=int,
+    show_default=True,
+    default=6,
+)
+@click.option(
+    "-o",
+    "--outdir",
+    help="Directory to place output files",
+    default="cluster_out",
+    show_default=True,
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+)
+@click.option(
+    "--tmp",
+    help=(
+        f"Specify where to write all (tbpore) temporary files. [default: "
+        f"<outdir>/{TMP_NAME}]"
+    ),
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+)
+@click.option(
+    "-t",
+    "--threads",
+    help="Number of threads to use in multithreaded tools",
+    type=int,
+    show_default=True,
+    default=1,
+)
+@click.option(
+    "--cleanup/--no-cleanup",
+    "-d/-D",
+    default=False,
+    show_default=True,
+    help="Remove all temporary files on *successful* completion",
+)
+@click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
+@click.pass_context
+def cluster(
+    ctx: click.Context,
+    threshold: int,
+    outdir: Path,
+    inputs: Tuple[Path, ...],
+    tmp: Path,
+    threads: int,
+    cleanup: bool,
+):
+    """Cluster consensus sequences
+
+    Preferably input consensus sequences previously generated with tbpore process.
+
+    INPUTS: Two or more consensus fasta sequences. Use glob patterns to input several easily (e.g. output/sample_*/*.consensus.fa).
+    """
+    not_enough_input = len(inputs) < 2
+    if not_enough_input:
+        logger.error(
+            "To cluster consensus sequences, please provide at least two input consensus sequences"
+        )
+        ctx.exit(2)
+
+    config = load_config_file()
+
+    tmp, logdir = setup_dirs(outdir, tmp)
+
+    infile = tmp / "all_sequences.fq.gz"
+    concatenate_inputs_into_infile(inputs, infile, False, ctx)
+
+    psdm_matrix = tmp / "psdm.matrix.csv"
+    psdm = ExternalTool(
+        tool="psdm",
+        input=str(infile),
+        output=f"-o {psdm_matrix}",
+        params=f"{config['psdm']['params']} -t {threads}",
+        logdir=logdir,
+    )
+    ExternalTool.run_tools((psdm,), ctx)
+
+    logger.info("Producing clusters...")
+    produce_clusters(psdm_matrix, threshold, outdir)
+    logger.info("Done producing clusters")
+
+    if cleanup:
+        logger.info("Cleaning up temporary files...")
+        shutil.rmtree(tmp)
+
+    logger.success("Done")
+
+
+def main():
+    main_cli()
 
 
 if __name__ == "__main__":

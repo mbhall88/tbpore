@@ -32,7 +32,7 @@ conda env create -f environment.yaml && conda activate tbpore  # install depende
 just install  # install tbpore
 just check  # checks installation is fine
 # if you want to run tbpore on an example isolate (will require you to download the decontamination DB index)
-scripts/run_sample_example.sh
+just test-run
 ```
 
 # Performance
@@ -43,24 +43,38 @@ Benchmarked on 91 TB Madagascar ONT samples with 1 thread:
 
 # Usage
 
-```
-Usage: tbpore [OPTIONS] [INPUTS]...
+## General usage
 
-  Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data
+```
+Usage: tbpore [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -h, --help     Show this message and exit.
+  -V, --version  Show the version and exit.
+  -v, --verbose  Turns on debug-level logger. Option is mutually exclusive
+                 with quiet.
+  -q, --quiet    Turns off all logging except errors. Option is mutually
+                 exclusive with verbose.
+
+Commands:
+  cluster  Cluster consensus sequences
+  process  Single-sample TB genomic analysis from Nanopore sequencing data
+```
+
+## process subcommand
+
+```
+Usage: tbpore process [OPTIONS] [INPUTS]...
+
+  Single-sample TB genomic analysis from Nanopore sequencing data
 
   INPUTS: Fastq file(s) and/or a directory containing fastq files. All files
   will be joined into a single fastq file, so ensure they're all part of the
   same sample/isolate.
 
 Options:
-  -h, --help                      Show this message and exit.
-  -V, --version                   Show the version and exit.
   -o, --outdir DIRECTORY          Directory to place output files  [default:
                                   tbpore_out]
-  -v, --verbose                   Turns on debug-level logger. Option is
-                                  mutually exclusive with quiet.
-  -q, --quiet                     Turns off all logging except errors. Option
-                                  is mutually exclusive with verbose.
   -r, --recursive                 Recursively search INPUTS for fastq files
   --tmp DIRECTORY                 Specify where to write all (tbpore)
                                   temporary files. [default: <outdir>/.tbpore]
@@ -74,4 +88,32 @@ Options:
   -d, --cleanup / -D, --no-cleanup
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
+  --help                          Show this message and exit.
+```
+
+## cluster subcommand
+
+```
+Usage: tbpore cluster [OPTIONS] [INPUTS]...
+
+  Cluster consensus sequences
+
+  Preferably input consensus sequences previously generated with tbpore
+  process.
+
+  INPUTS: Two or more consensus fasta sequences. Use glob patterns to input
+  several easily (e.g. output/sample_*/*.consensus.fa).
+
+Options:
+  -T, --threshold INTEGER         Clustering threshold  [default: 6]
+  -o, --outdir DIRECTORY          Directory to place output files  [default:
+                                  cluster_out]
+  --tmp DIRECTORY                 Specify where to write all (tbpore)
+                                  temporary files. [default: <outdir>/.tbpore]
+  -t, --threads INTEGER           Number of threads to use in multithreaded
+                                  tools  [default: 1]
+  -d, --cleanup / -D, --no-cleanup
+                                  Remove all temporary files on *successful*
+                                  completion  [default: no-cleanup]
+  --help                          Show this message and exit.
 ```

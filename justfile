@@ -43,3 +43,7 @@ check: check-fmt lint test
 tag:
     @echo "Run {{ BOLD }}git tag -a {{ VERSION }} -m <message>{{ NORM }} to tag the release"
     @echo "Then run {{ BOLD }}git push origin {{ VERSION }}{{ NORM }} to push the tag"
+
+# runs tbpore on sample example
+test-run:
+    scripts/run_sample_example.sh

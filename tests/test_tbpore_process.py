@@ -16,7 +16,7 @@ from tbpore.tbpore import (
     decontamination_db_index,
     decontamination_db_metadata,
     external_scripts_dir,
-    main,
+    main_cli,
 )
 
 
@@ -36,8 +36,8 @@ class TestExternalToolsExecution:
             infile = td / "in.fq"
             with open(infile, "w") as fp:
                 fp.write("@r1\nACGT\n+$$$%\n")
-            opts = [str(infile), "-o", str(td)]
-            result = runner.invoke(main, opts)
+            opts = ["process", str(infile), "-o", str(td)]
+            result = runner.invoke(main_cli, opts)
 
             # check tbpore ran fine
             assert result.exit_code == 0
@@ -152,6 +152,7 @@ class TestExternalToolsExecution:
             with open(infile, "w") as fp:
                 fp.write("@r1\nACGT\n+$$$%\n")
             opts = [
+                "process",
                 str(infile),
                 "-o",
                 str(td),
@@ -163,7 +164,7 @@ class TestExternalToolsExecution:
                 "8",
                 "--report_all_mykrobe_calls",
             ]
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
 
             # check tbpore ran fine
             assert result.exit_code == 0
@@ -283,12 +284,13 @@ class TestExternalToolsExecution:
             with open(infile, "w") as fp:
                 fp.write("@r1\nACGT\n+$$$%\n")
             opts = [
+                "process",
                 str(infile),
                 "--cleanup",
                 "-o",
                 str(td),
             ]  # asks for cleanup, but it should not cleanup as this is a run that fails
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
 
             # check if tbpore indeed failed
             assert result.exit_code == 1
@@ -338,7 +340,7 @@ class TestCLICleanup:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["--no-cleanup", "-S", sample]
+        opts = ["process", "--no-cleanup", "-S", sample]
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
             td = Path(td)
@@ -348,7 +350,7 @@ class TestCLICleanup:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_tmp = td / TMP_NAME
             assert tbpore_tmp.exists()
@@ -357,7 +359,7 @@ class TestCLICleanup:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["--cleanup", "-S", sample]
+        opts = ["process", "--cleanup", "-S", sample]
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
             td = Path(td)
@@ -367,7 +369,7 @@ class TestCLICleanup:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_tmp = td / TMP_NAME
             assert not tbpore_tmp.exists()
@@ -379,9 +381,10 @@ class TestInputConcatenation:
     def test_no_input___fails(
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
+        opts = ["process"]
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path):
-            result = runner.invoke(main, [])
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 2
             assert b"No INPUT files given" in result.stdout_bytes
 
@@ -389,7 +392,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq = "@r1\nACGT\n+$$$%\n"
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -400,7 +403,7 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
             assert tbpore_concat.exists()
@@ -412,7 +415,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq = "@r1\nACGT\n+$$$%\n"
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
@@ -423,7 +426,7 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
             assert tbpore_concat.exists()
@@ -435,7 +438,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq1 = "@r1\nACGT\n+$$$%\n"
         expected_fq2 = "@r1\nAAGT\n+$$$%\n"
@@ -450,7 +453,7 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(infile1), str(infile2)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
             assert tbpore_concat.exists()
@@ -464,13 +467,13 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         with runner.isolated_filesystem(temp_dir=tmp_path) as td:
             td = Path(td)
             opts.extend(["-o", str(td)])
             opts.extend([str(td)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 2
             assert (
                 b"No fastq files found for the given inputs, please check your input files/dirs."
@@ -481,7 +484,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq1 = "@r1\nACGT\n+$$$%\n"
         expected_fq2 = "@r1\nAAGT\n+$$$%\n"
@@ -496,7 +499,7 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(td)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
             assert tbpore_concat.exists()
@@ -510,7 +513,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq1 = "@r1\nACGT\n+$$$%\n"
         expected_fq2 = "@r1\nAAGT\n+$$$%\n"
@@ -525,7 +528,7 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(td)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
             assert tbpore_concat.exists()
@@ -539,7 +542,7 @@ class TestInputConcatenation:
         self, ensure_decontamination_db_is_available_mock, run_core_mock, tmp_path
     ):
         sample = "sam"
-        opts = ["-D", "-S", sample]
+        opts = ["process", "-D", "-S", sample]
         runner = CliRunner()
         expected_fq1 = "@r1\nACGT\n+$$$%\n"
         expected_fq2 = "@r1\nAAGT\n+$$$%\n"
@@ -554,9 +557,8 @@ class TestInputConcatenation:
 
             opts.extend(["-o", str(td)])
             opts.extend([str(td), str(infile1), str(infile2)])
-            result = runner.invoke(main, opts)
+            result = runner.invoke(main_cli, opts)
             assert result.exit_code == 0
-            print(result.stdout_bytes)
             assert b"Found 2 fastq files. Joining them..." in result.stdout_bytes
 
             tbpore_concat = td / TMP_NAME / f"{sample}.fq.gz"
