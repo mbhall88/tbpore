@@ -52,6 +52,42 @@ tbpore -h  # print usage
 
 Whenever you want to rerun `tbpore` and you are not already in the `conda` `tbpore` environment, you can activate it by
 running `conda activate tbpore` and then `tbpore` will be available.
+
+# Configuring the decontamination database index
+
+When you run your first `tbpore process`, you will get this error:
+```
+ERROR    | Decontamination DB index tbpore/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi does not
+exist, please follow the instructions at <TODO: add url> to download and configure it before running tbpore
+```
+This means you need to download the [minimap2](https://github.com/lh3/minimap2) decontamination database index before
+proceeding. We did not include this index in this repo, as it is too heavy. Right now this index is private and can be
+downloaded by logging with your credentials into the EBI private FTP server `ftp-private.ebi.ac.uk` and downloading the
+index at `tbpore/0.1.0/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi.gz`. Once the download is complete,
+you can:
+
+1. Ensure that the compressed index was transferred correctly by checking its `md5sum`:
+```
+$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+82d050e0f1cba052f0c94f16fcb32f7b  tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+```
+
+2. Decompress the index:
+```
+gunzip tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+```
+
+3. Check the md5sum of the decompressed index:
+```
+$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
+810c5c09eaf9421128e4e52cdf2fa32a  tbpore.remove_contam.fa.gz.map-ont.mmi
+```
+
+4. Move the decompressed index to `<tbpore_dir>/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi`
+
+Once these four steps above are done, you should be able to run `tbpore` on an example isolate by going into the
+`tbpore` dir and running:
+```
 just test-run
 ```
 
