@@ -11,6 +11,15 @@
 
 **⚠️WORK IN PROGRESS⚠️**
 
+[TOC]: #
+
+# Table of Contents
+- [Synopsis](#synopsis)
+- [Installation](#installation)
+- [Configuring the decontamination database index](#configuring-the-decontamination-database-index)
+- [Performance](#performance)
+- [Usage](#usage)
+
 # Synopsis
 
 `tbpore` is a tool with two main goals.
