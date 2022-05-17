@@ -38,13 +38,20 @@ Second, `tbpore` can be used to cluster TB samples based on their genotyping and
 
 ### Walkthrough
 
+The following steps will create a [conda](https://docs.conda.io/en/latest/) environment named `tbpore` which will
+contain all dependencies and `tbpore` itself.
+
 ```
-git clone https://github.com/mbhall88/tbpore
+git clone https://github.com/mbhall88/tbpore  # get tbpore source code
 cd tbpore
 conda env create -f environment.yaml && conda activate tbpore  # install dependencies
 just install  # install tbpore
-just check  # checks installation is fine
-# if you want to run tbpore on an example isolate (will require you to download the decontamination DB index)
+just check  # check installation is fine
+tbpore -h  # print usage
+```
+
+Whenever you want to rerun `tbpore` and you are not already in the `conda` `tbpore` environment, you can activate it by
+running `conda activate tbpore` and then `tbpore` will be available.
 just test-run
 ```
 
