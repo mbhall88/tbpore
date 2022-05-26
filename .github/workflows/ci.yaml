@@ -26,7 +26,7 @@ jobs:
       - name:  Install project
         shell: bash -l {0}
         run:   |
-               conda install python=${{ matrix.python-version }}
+               mamba install python=${{ matrix.python-version }}
                just install
       - name:  Check formatting
         shell: bash -l {0}
