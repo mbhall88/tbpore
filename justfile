@@ -21,7 +21,7 @@ lint:
 # install latest version with poetry
 install:
     poetry config experimental.new-installer false
-    poetry install
+    poetry install --no-interaction
 
 # run all tests
 test opts="":
@@ -47,3 +47,7 @@ tag:
 # runs tbpore on sample example
 test-run:
     scripts/run_sample_example.sh
+
+# build a python release
+build:
+    poetry build --no-interaction
