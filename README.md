@@ -9,13 +9,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**⚠️WORK IN PROGRESS⚠️**
-
 [TOC]: #
 
 # Table of Contents
 - [Synopsis](#synopsis)
 - [Installation](#installation)
+- [Walkthrough](#walkthrough)
 - [Configuring the decontamination database index](#configuring-the-decontamination-database-index)
 - [Performance](#performance)
 - [Usage](#usage)
@@ -31,21 +30,73 @@ Antibiotic resistance is predicted with [mykrobe](https://github.com/Mykrobe-too
 Second, `tbpore` can be used to cluster TB samples based on their genotyping and a given distance threshold (command
 `tbpore cluster`).
 
-# Installation
+## Installation
 
-<!---
-## conda
+### conda
 
-`conda install tbpore`
--->
+[![Conda (channel only)](https://img.shields.io/conda/vn/bioconda/tbpore)](https://anaconda.org/bioconda/tbpore)
+[![bioconda version](https://anaconda.org/bioconda/tbpore/badges/platforms.svg)](https://anaconda.org/bioconda/tbpore)
+![Conda](https://img.shields.io/conda/dn/bioconda/tbpore)
 
-## local
+Prerequisite: [`conda`][conda] (and bioconda channel [correctly set up][channels])
 
-### Dependencies
-* `git`
-* `conda`
+```shell
+$ conda install tbpore
+```
 
-### Walkthrough
+### pip
+
+![PyPI](https://img.shields.io/pypi/v/tbpore)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tbpore)
+
+The python components of `tbpore` are availble to install through [PyPI].
+
+```shell
+pip install tbpore
+```
+
+**However**, you will need to install the following dependencies, which cannot be installed through PyPI.
+
+#### Dependencies
+* [`rasusa`](https://github.com/mbhall88/rasusa)
+* [`psdm`](https://github.com/mbhall88/psdm) version 0.1
+* [`samtools`](https://github.com/samtools/samtools) version 1.13
+* [`bcftools`](https://github.com/samtools/bcftools) version 1.13
+* [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version ≥ 0.11
+* [`minimap2`](https://github.com/lh3/minimap2) version 2.22
+* [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.0
+
+We make no guarentees about the performance of `tbpore` with versions other than those specified above. In particular, the `bcftools` version is very important. The latest versions of the other dependencies can likely be used.
+
+### Container
+
+Docker images are provided through biocontainers.
+
+#### `singularity`
+
+Prerequisite: [`singularity`][singularity]
+
+```shell
+$ URI="docker://quay.io/biocontainers/tbpore:<tag>"
+$ singularity exec "$URI" tbpore --help
+```
+
+see [here][tags] for valid values for `<tag>`.
+
+#### `docker`
+
+[![Docker Repository on Quay](https://quay.io/repository/biocontainers/tbpore/status "Docker Repository on Quay")](https://quay.io/repository/biocontainers/tbpore)
+
+Prerequisite: [Docker]
+
+```shhell
+$ docker pull quay.io/biocontainers/tbpore:<tag>
+$ docker run quay.io/biocontainers/tbpore:<tag> tbpore --help
+```
+
+see [here][tags] for valid values for `<tag>`.
+
+## Walkthrough
 
 The following steps will create a [conda](https://docs.conda.io/en/latest/) environment named `tbpore` which will
 contain all dependencies and `tbpore` itself.
@@ -62,7 +113,7 @@ tbpore -h  # print usage
 Whenever you want to rerun `tbpore` and you are not already in the `conda` `tbpore` environment, you can activate it by
 running `conda activate tbpore` and then `tbpore` will be available.
 
-# Configuring the decontamination database index
+### Configuring the decontamination database index
 
 When you run your first `tbpore process`, you will get this error:
 ```
@@ -191,3 +242,10 @@ Options:
                                   completion  [default: no-cleanup]
   --help                          Show this message and exit.
 ```
+
+[channels]: https://bioconda.github.io/user/install.html#set-up-channels
+[conda]: https://docs.conda.io/projects/conda/en/latest/user-guide/install/
+[PyPI]: https://pypi.org/project/tbpore/
+[singularity]: [singularity]: https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps
+[tags]: https://quay.io/repository/biocontainers/tbpore?tab=tags
+[Docker]: https://docs.docker.com/v17.12/install/
