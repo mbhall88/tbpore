@@ -246,6 +246,6 @@ Options:
 [channels]: https://bioconda.github.io/user/install.html#set-up-channels
 [conda]: https://docs.conda.io/projects/conda/en/latest/user-guide/install/
 [PyPI]: https://pypi.org/project/tbpore/
-[singularity]: [singularity]: https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps
+[singularity]: https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps
 [tags]: https://quay.io/repository/biocontainers/tbpore?tab=tags
 [Docker]: https://docs.docker.com/v17.12/install/
