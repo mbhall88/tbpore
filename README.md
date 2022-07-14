@@ -243,7 +243,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-[channels]: https://bioconda.github.io/user/install.html#set-up-channels
+[channels]: https://bioconda.github.io/#usage
 [conda]: https://docs.conda.io/projects/conda/en/latest/user-guide/install/
 [PyPI]: https://pypi.org/project/tbpore/
 [singularity]: https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps
