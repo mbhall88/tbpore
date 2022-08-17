@@ -122,10 +122,8 @@ exist, please follow the instructions at https://github.com/mbhall88/tbpore#conf
 to download and configure it before running tbpore
 ```
 This means you need to download the [minimap2](https://github.com/lh3/minimap2) decontamination database index before
-proceeding. We did not include this index in this repo as it is too heavy. Right now this index is private and can be
-downloaded by logging with your credentials into the EBI private FTP server `ftp-private.ebi.ac.uk` and downloading the
-index at `tbpore/0.1.0/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi.gz`. Once the download is complete,
-you can:
+proceeding. You can [download this index here](https://figshare.com/ndownloader/files/36708444).
+Once the download is complete, you can:
 
 1. Ensure that the compressed index was transferred correctly by checking its `md5sum`:
 ```
