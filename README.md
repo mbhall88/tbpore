@@ -89,7 +89,7 @@ see [here][tags] for valid values for `<tag>`.
 
 Prerequisite: [Docker]
 
-```shhell
+```shell
 $ docker pull quay.io/biocontainers/tbpore:<tag>
 $ docker run quay.io/biocontainers/tbpore:<tag> tbpore --help
 ```
@@ -101,7 +101,7 @@ see [here][tags] for valid values for `<tag>`.
 The following steps will create a [conda](https://docs.conda.io/en/latest/) environment named `tbpore` which will
 contain all dependencies and `tbpore` itself.
 
-```
+```shell
 git clone https://github.com/mbhall88/tbpore  # get tbpore source code
 cd tbpore
 conda env create -f environment.yaml && conda activate tbpore  # install dependencies
@@ -126,19 +126,19 @@ proceeding. You can [download this index here](https://figshare.com/ndownloader/
 Once the download is complete, you can:
 
 1. Ensure that the compressed index was transferred correctly by checking its `md5sum`:
-```
-$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+```shell
+md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 82d050e0f1cba052f0c94f16fcb32f7b  tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 ```
 
 2. Decompress the index:
-```
+```shell
 gunzip tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 ```
 
 3. Check the md5sum of the decompressed index:
-```
-$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
+```shell
+md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
 810c5c09eaf9421128e4e52cdf2fa32a  tbpore.remove_contam.fa.gz.map-ont.mmi
 ```
 
@@ -146,7 +146,7 @@ $ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
 
 Once these four steps above are done, you should be able to run `tbpore` on an example isolate by going into the
 `tbpore` dir and running:
-```
+```shell
 just test-run
 ```
 
