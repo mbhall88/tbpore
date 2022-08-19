@@ -89,29 +89,12 @@ see [here][tags] for valid values for `<tag>`.
 
 Prerequisite: [Docker]
 
-```shhell
+```shell
 $ docker pull quay.io/biocontainers/tbpore:<tag>
 $ docker run quay.io/biocontainers/tbpore:<tag> tbpore --help
 ```
 
 see [here][tags] for valid values for `<tag>`.
-
-## Walkthrough
-
-The following steps will create a [conda](https://docs.conda.io/en/latest/) environment named `tbpore` which will
-contain all dependencies and `tbpore` itself.
-
-```
-git clone https://github.com/mbhall88/tbpore  # get tbpore source code
-cd tbpore
-conda env create -f environment.yaml && conda activate tbpore  # install dependencies
-just install  # install tbpore
-just check  # check installation is fine
-tbpore -h  # print usage
-```
-
-Whenever you want to rerun `tbpore` and you are not already in the `conda` `tbpore` environment, you can activate it by
-running `conda activate tbpore` and then `tbpore` will be available.
 
 ### Configuring the decontamination database index
 
@@ -122,25 +105,27 @@ exist, please follow the instructions at https://github.com/mbhall88/tbpore#conf
 to download and configure it before running tbpore
 ```
 This means you need to download the [minimap2](https://github.com/lh3/minimap2) decontamination database index before
-proceeding. We did not include this index in this repo as it is too heavy. Right now this index is private and can be
-downloaded by logging with your credentials into the EBI private FTP server `ftp-private.ebi.ac.uk` and downloading the
-index at `tbpore/0.1.0/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi.gz`. Once the download is complete,
-you can:
+proceeding. You can [download this index here](https://figshare.com/ndownloader/files/36708444) or by running:
+```shell
+wget https://figshare.com/ndownloader/files/36708444 -O tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+```
+
+Once the download is complete, you can:
 
 1. Ensure that the compressed index was transferred correctly by checking its `md5sum`:
-```
-$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+```shell
+md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 82d050e0f1cba052f0c94f16fcb32f7b  tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 ```
 
 2. Decompress the index:
-```
+```shell
 gunzip tbpore.remove_contam.fa.gz.map-ont.mmi.gz
 ```
 
 3. Check the md5sum of the decompressed index:
-```
-$ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
+```shell
+md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
 810c5c09eaf9421128e4e52cdf2fa32a  tbpore.remove_contam.fa.gz.map-ont.mmi
 ```
 
@@ -148,7 +133,7 @@ $ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
 
 Once these four steps above are done, you should be able to run `tbpore` on an example isolate by going into the
 `tbpore` dir and running:
-```
+```shell
 just test-run
 ```
 
