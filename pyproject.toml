@@ -8,6 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/mbhall88/tbpore"
 repository = "https://github.com/mbhall88/tbpore"
 keywords = ["tuberculosis", "nanopore", "diagnostics", "genomics", "variant-calling", "resistance-prediction"]
+include = ["CHANGELOG.md", ".config.yaml", "external_scripts/", "data/"]
 
 [tool.poetry.scripts]
 tbpore = 'tbpore.tbpore:main'
