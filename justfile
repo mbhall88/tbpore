@@ -1,8 +1,6 @@
 PROJECT := "tbpore"
 OPEN := if os() == "macos" { "open" } else { "xdg-open" }
 VERSION := `poetry version | rg -o '\d+\.\d+\.\d+'`
-BOLD := `tput bold`
-NORM := `tput sgr0`
 
 # format code with black and isort
 fmt:
@@ -41,8 +39,8 @@ check: check-fmt lint test
 
 # prints out the commands to run to tag the release and push it
 tag:
-    @echo "Run {{ BOLD }}git tag -a {{ VERSION }} -m <message>{{ NORM }} to tag the release"
-    @echo "Then run {{ BOLD }}git push origin {{ VERSION }}{{ NORM }} to push the tag"
+    @echo "Run \`git tag -a {{ VERSION }} -m <message>\` to tag the release"
+    @echo "Then run \`git push origin {{ VERSION }}\` to push the tag"
 
 # runs tbpore on sample example
 test-run:
