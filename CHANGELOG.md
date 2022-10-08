@@ -11,6 +11,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Ability to specify a different path for the decontamination database (`--db`) [[#34]][34]
 
+## Changed
+
+- Update mykrobe to v0.12 (WHO catalogue)
+
 ## [0.1.1]
 
 ### Fixed
