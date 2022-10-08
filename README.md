@@ -62,7 +62,7 @@ pip install tbpore
 * [`psdm`](https://github.com/mbhall88/psdm) version 0.1
 * [`samtools`](https://github.com/samtools/samtools) version 1.13
 * [`bcftools`](https://github.com/samtools/bcftools) version 1.13
-* [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version ≥ 0.11
+* [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version ≥ 0.12
 * [`minimap2`](https://github.com/lh3/minimap2) version 2.22
 * [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.0
 

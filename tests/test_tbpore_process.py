@@ -92,8 +92,8 @@ class TestExternalToolsExecution:
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 mykrobe_cl
-                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} -e 0.08 "
-                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
+                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} --ont "
+                f"--format json --min_proportion_expected_depth 0.20 --species tb "
                 f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
@@ -220,8 +220,8 @@ class TestExternalToolsExecution:
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 mykrobe_cl
-                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} -e 0.08 "
-                f"--ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb "
+                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} --ont "
+                f"--format json --min_proportion_expected_depth 0.20 --species tb "
                 f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 

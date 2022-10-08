@@ -192,9 +192,7 @@ def main_cli(
 @click.option(
     "--db",
     type=click.Path(exists=True, path_type=Path),
-    help="Path to the decontaminaton database",
-    default=decontamination_db_index,
-    show_default=True,
+    help=f"Path to the decontaminaton database [default: {decontamination_db_index}]",
 )
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
@@ -223,8 +221,10 @@ def process(
     config = load_config_file()
 
     # we don't need to check if a path provided by the user exists as click does that
-    if db == decontamination_db_index:
+    if not db:
+        logger.debug("No decontamination database specified, using default...")
         ensure_decontamination_db_is_available(config, ctx)
+        db = decontamination_db_index
 
     if not name:
         name = inputs[0].name.split(".")[0]

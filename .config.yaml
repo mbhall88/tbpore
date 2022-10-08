@@ -4,7 +4,7 @@
 
 mykrobe:
   predict:
-    params: "-e 0.08 --ploidy haploid --format json --min_proportion_expected_depth 0.20 --species tb -m 2048MB"
+    params: "--ont --format json --min_proportion_expected_depth 0.20 --species tb -m 2048MB"
 
 rasusa:
   params: "-c 150 -g 4411532 -s 88"
