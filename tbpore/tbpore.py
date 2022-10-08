@@ -189,6 +189,13 @@ def main_cli(
     show_default=True,
     help="Remove all temporary files on *successful* completion",
 )
+@click.option(
+    "--db",
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to the decontaminaton database",
+    default=decontamination_db_index,
+    show_default=True,
+)
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def process(
@@ -201,6 +208,7 @@ def process(
     threads: int,
     report_all_mykrobe_calls: bool,
     cleanup: bool,
+    db: Path,
 ):
     """Single-sample TB genomic analysis from Nanopore sequencing data
 
@@ -214,7 +222,9 @@ def process(
 
     config = load_config_file()
 
-    ensure_decontamination_db_is_available(config, ctx)
+    # we don't need to check if a path provided by the user exists as click does that
+    if db == decontamination_db_index:
+        ensure_decontamination_db_is_available(config, ctx)
 
     if not name:
         name = inputs[0].name.split(".")[0]
@@ -230,7 +240,7 @@ def process(
     decontaminated_sam = str(tmp / f"{name}.decontaminated.sam")
     map_decontamination_db = ExternalTool(
         tool="minimap2",
-        input=f"{decontamination_db_index} {infile}",
+        input=f"{db} {infile}",
         output=f"-o {decontaminated_sam}",
         params=f"{config['minimap2']['map_to_decom_DB']['params']} -t {threads}",
         logdir=logdir,
