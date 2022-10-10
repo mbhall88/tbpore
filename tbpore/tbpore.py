@@ -194,6 +194,12 @@ def main_cli(
     type=click.Path(exists=True, path_type=Path),
     help=f"Path to the decontaminaton database [default: {decontamination_db_index}]",
 )
+@click.option(
+    "-m",
+    "--metadata",
+    type=click.Path(exists=True, path_type=Path),
+    help=f"Path to the decontaminaton database metadata file [default: {decontamination_db_metadata}]",
+)
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def process(
@@ -207,6 +213,7 @@ def process(
     report_all_mykrobe_calls: bool,
     cleanup: bool,
     db: Path,
+    metadata: Path,
 ):
     """Single-sample TB genomic analysis from Nanopore sequencing data
 
@@ -219,6 +226,22 @@ def process(
         ctx.exit(2)
 
     config = load_config_file()
+    if not metadata and db:
+        logger.info(
+            "You have specified an alternate path to the decontamination database "
+            "but are using the default metadata file. If you are using the tbpore-provided "
+            "database, this is fine. Otherwise we recommend creating your own metadata "
+            "file"
+        )
+
+    if metadata:
+        if not db:
+            logger.info(
+                "You have specified a custom metadata file, but the default "
+                "decontamination database. We trust you know what you're doing"
+            )
+    else:
+        metadata = decontamination_db_metadata
 
     # we don't need to check if a path provided by the user exists as click does that
     if not db:
@@ -267,7 +290,7 @@ def process(
     filter_contamination_dir.mkdir(parents=True, exist_ok=True)
     filter_contamination = ExternalTool(
         tool=sys.executable,
-        input=f"-i {sorted_decontaminated_bam} -m {decontamination_db_metadata}",
+        input=f"-i {sorted_decontaminated_bam} -m {metadata}",
         output=f"-o {filter_contamination_dir}",
         params=f"{external_scripts_dir/'filter_contamination.py'} {config['filter_contamination']['params']}",
         logdir=logdir,
