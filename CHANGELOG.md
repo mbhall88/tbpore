@@ -9,7 +9,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Added
 
-- Ability to specify a different path for the decontamination database (`--db`) [[#34]][34]
+- Ability to specify a different path for the decontamination database (`--db`) and metadata file (`--metadata`) [[#34]][34]
 
 ## Changed
 
