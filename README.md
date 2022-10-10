@@ -130,6 +130,7 @@ md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
 ```
 
 4. Move the decompressed index to `<tbpore_dir>/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi`
+    * Note: you can also keep this index at a different path and specify it to `tbpore` using the `--db` option;
 
 Once these four steps above are done, you should be able to run `tbpore` on an example isolate by going into the
 `tbpore` dir and running:
@@ -198,6 +199,10 @@ Options:
   -d, --cleanup / -D, --no-cleanup
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
+  --db PATH                       Path to the decontaminaton database
+                                  [default: /home/leandro/git/tbpore/data/deco
+                                  ntamination_db/tbpore.remove_contam.fa.gz.ma
+                                  p-ont.mmi]
   --help                          Show this message and exit.
 ```
 
