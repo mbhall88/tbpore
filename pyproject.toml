@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tbpore"
-version = "0.1.1"
+version = "0.2.0"
 description = "Mycobacterium tuberculosis genomic analysis from Nanopore sequencing data"
 authors = ["Michael Hall <michael@mbh.sh>"]
 license = "MIT"
