@@ -200,9 +200,12 @@ Options:
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
   --db PATH                       Path to the decontaminaton database
-                                  [default: /home/leandro/git/tbpore/data/deco
-                                  ntamination_db/tbpore.remove_contam.fa.gz.ma
-                                  p-ont.mmi]
+                                  [default: <project_root_dir>/data
+                                  /decontamination_db
+                                  /tbpore.remove_contam.fa.gz.map-ont.mmi]
+  -m, --metadata PATH             Path to the decontaminaton database metadata
+                                  file [default: <project_root_dir>/data
+                                  /decontamination_db/remove_contam.tsv.gz]
   --help                          Show this message and exit.
 ```
 
