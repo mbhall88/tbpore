@@ -7,6 +7,15 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Added
+
+- Ability to specify the path to the cache directory (`--cache`) [[#43][43]]
+
+### Changed
+
+- Default cache dir is now `${HOME}/.cache` [[#43][43]]
+- Default output directory for all subcommands is now the current directory
+
 ## [0.2.0]
 
 ### Added
@@ -34,3 +43,4 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [0.1.1]: https://github.com/mbhall88/tbpore/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/mbhall88/tbpore/releases/tag/0.1.0
 [34]: https://github.com/mbhall88/tbpore/issues/34
+[43]: https://github.com/mbhall88/tbpore/issues/43
