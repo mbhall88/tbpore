@@ -9,13 +9,13 @@ from click.testing import CliRunner
 
 from tbpore.external_tools import ExternalTool
 from tbpore.tbpore import (
+    CACHE_DIR,
+    DECONTAMINATION_DB_INDEX,
+    DECONTAMINATION_DB_METADATA,
+    EXTERNAL_SCRIPTS_DIR,
     TMP_NAME,
     H37RV_genome,
     H37RV_mask,
-    cache_dir,
-    decontamination_db_index,
-    decontamination_db_metadata,
-    external_scripts_dir,
     main_cli,
 )
 
@@ -50,7 +50,7 @@ class TestExternalToolsExecution:
             )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {decontamination_db_index} {td}/{TMP_NAME}/in.fq.gz"
+                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {DECONTAMINATION_DB_INDEX} {td}/{TMP_NAME}/in.fq.gz"
             )
 
             sort_decontaminated_sam_cl = self.get_command_line_from_mock(
@@ -72,7 +72,7 @@ class TestExternalToolsExecution:
             filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 3)
             assert (
                 filter_contamination_cl
-                == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/{TMP_NAME}/in.decontaminated.filter -i {td}/{TMP_NAME}/in.decontaminated.sorted.bam -m {decontamination_db_metadata}"
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/filter_contamination.py --verbose --ignore-secondary -o {td}/{TMP_NAME}/in.decontaminated.filter -i {td}/{TMP_NAME}/in.decontaminated.sorted.bam -m {DECONTAMINATION_DB_METADATA}"
             )
 
             extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
@@ -92,7 +92,7 @@ class TestExternalToolsExecution:
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 mykrobe_cl
-                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {cache_dir} --ont "
+                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {CACHE_DIR} --ont "
                 f"--format json --min_proportion_expected_depth 0.20 --species tb "
                 f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
@@ -128,7 +128,7 @@ class TestExternalToolsExecution:
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 filter_vcf_cl
-                == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
                 f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
                 f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
             )
@@ -136,7 +136,7 @@ class TestExternalToolsExecution:
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 generate_consensus_cl
-                == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id in --verbose --ignore all "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/consensus.py --sample-id in --verbose --ignore all "
                 f"--het-default none -o {td}/in.consensus.fa -i {td}/in.snps.filtered.bcf "
                 f"-f {H37RV_genome} -m {H37RV_mask}"
             )
@@ -177,7 +177,7 @@ class TestExternalToolsExecution:
             )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 8 -o {td}/custom_tmp/custom_name.decontaminated.sam {decontamination_db_index} {td}/custom_tmp/custom_name.fq.gz"
+                == f"minimap2 -aL2 -x map-ont -t 8 -o {td}/custom_tmp/custom_name.decontaminated.sam {DECONTAMINATION_DB_INDEX} {td}/custom_tmp/custom_name.fq.gz"
             )
 
             sort_decontaminated_sam_cl = self.get_command_line_from_mock(
@@ -199,7 +199,7 @@ class TestExternalToolsExecution:
             filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 3)
             assert (
                 filter_contamination_cl
-                == f"{sys.executable} {external_scripts_dir}/filter_contamination.py --verbose --ignore-secondary -o {td}/custom_tmp/custom_name.decontaminated.filter -i {td}/custom_tmp/custom_name.decontaminated.sorted.bam -m {decontamination_db_metadata}"
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/filter_contamination.py --verbose --ignore-secondary -o {td}/custom_tmp/custom_name.decontaminated.filter -i {td}/custom_tmp/custom_name.decontaminated.sorted.bam -m {DECONTAMINATION_DB_METADATA}"
             )
 
             extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
@@ -220,7 +220,7 @@ class TestExternalToolsExecution:
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 mykrobe_cl
-                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {cache_dir} --ont "
+                == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {CACHE_DIR} --ont "
                 f"--format json --min_proportion_expected_depth 0.20 --species tb "
                 f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
@@ -256,7 +256,7 @@ class TestExternalToolsExecution:
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 filter_vcf_cl
-                == f"{sys.executable} {external_scripts_dir}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
                 f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
                 f"-o {td}/custom_name.snps.filtered.bcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
             )
@@ -264,7 +264,7 @@ class TestExternalToolsExecution:
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 generate_consensus_cl
-                == f"{sys.executable} {external_scripts_dir}/consensus.py --sample-id custom_name --verbose --ignore all "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/consensus.py --sample-id custom_name --verbose --ignore all "
                 f"--het-default none -o {td}/custom_name.consensus.fa -i {td}/custom_name.snps.filtered.bcf "
                 f"-f {H37RV_genome} -m {H37RV_mask}"
             )
@@ -312,7 +312,7 @@ class TestExternalToolsExecution:
             )
             assert (
                 map_decontamination_db_cl
-                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {decontamination_db_index} {td}/{TMP_NAME}/in.fq.gz"
+                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {DECONTAMINATION_DB_INDEX} {td}/{TMP_NAME}/in.fq.gz"
             )
 
             sort_decontaminated_sam_cl = self.get_command_line_from_mock(

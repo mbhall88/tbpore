@@ -54,6 +54,7 @@ class TestClusterCLI:
                 fp.write("@r1\nACGT\n+$$$%\n")
             opts = ["cluster", "-o", str(td), str(infile_1), str(infile_2)]
             result = runner.invoke(main_cli, opts)
+            print(result)
             assert result.exit_code == 0
 
             assert run_core_mock.call_count == 1
