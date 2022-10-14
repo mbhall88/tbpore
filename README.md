@@ -184,29 +184,32 @@ Usage: tbpore process [OPTIONS] [INPUTS]...
   same sample/isolate.
 
 Options:
-  -o, --outdir DIRECTORY          Directory to place output files  [default:
-                                  tbpore_out]
+  -h, --help                      Show this message and exit.
   -r, --recursive                 Recursively search INPUTS for fastq files
-  --tmp DIRECTORY                 Specify where to write all (tbpore)
-                                  temporary files. [default: <outdir>/.tbpore]
   -S, --name TEXT                 Name of the sample. By default, will use the
                                   first INPUT file with any extensions
                                   stripped
-  -t, --threads INTEGER           Number of threads to use in multithreaded
-                                  tools  [default: 1]
   -A, --report_all_mykrobe_calls  Report all mykrobe calls (turn on flag -A,
                                   --report_all_calls when calling mykrobe)
+  --db PATH                       Path to the decontaminaton database
+                                  [default: /Users/michaelhall/Projects/tbpore
+                                  /data/decontamination_db/tbpore.remove_conta
+                                  m.fa.gz.map-ont.mmi]
+  -m, --metadata PATH             Path to the decontaminaton database metadata
+                                  file  [default: /Users/michaelhall/Projects/
+                                  tbpore/data/decontamination_db/remove_contam
+                                  .tsv.gz]
+  -o, --outdir DIRECTORY          Directory to place output files  [default:
+                                  .]
+  --tmp DIRECTORY                 Specify where to write all (tbpore)
+                                  temporary files. [default: <outdir>/.tbpore]
+  -t, --threads INTEGER           Number of threads to use in multithreaded
+                                  tools  [default: 1]
   -d, --cleanup / -D, --no-cleanup
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
-  --db PATH                       Path to the decontaminaton database
-                                  [default: <project_root_dir>/data
-                                  /decontamination_db
-                                  /tbpore.remove_contam.fa.gz.map-ont.mmi]
-  -m, --metadata PATH             Path to the decontaminaton database metadata
-                                  file [default: <project_root_dir>/data
-                                  /decontamination_db/remove_contam.tsv.gz]
-  --help                          Show this message and exit.
+  --cache DIRECTORY               Path to use for the cache  [default:
+                                  /Users/michaelhall/.cache]
 ```
 
 ## cluster subcommand
@@ -223,9 +226,10 @@ Usage: tbpore cluster [OPTIONS] [INPUTS]...
   several easily (e.g. output/sample_*/*.consensus.fa).
 
 Options:
+  -h, --help                      Show this message and exit.
   -T, --threshold INTEGER         Clustering threshold  [default: 6]
   -o, --outdir DIRECTORY          Directory to place output files  [default:
-                                  cluster_out]
+                                  .]
   --tmp DIRECTORY                 Specify where to write all (tbpore)
                                   temporary files. [default: <outdir>/.tbpore]
   -t, --threads INTEGER           Number of threads to use in multithreaded
@@ -233,7 +237,8 @@ Options:
   -d, --cleanup / -D, --no-cleanup
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
-  --help                          Show this message and exit.
+  --cache DIRECTORY               Path to use for the cache  [default:
+                                  /Users/michaelhall/.cache]
 ```
 
 [channels]: https://bioconda.github.io/#usage

@@ -120,6 +120,14 @@ def common_opts(func):
     """
 
     @click.option(
+        "-o",
+        "--outdir",
+        help="Directory to place output files",
+        default=".",
+        show_default=True,
+        type=click.Path(file_okay=False, writable=True, path_type=Path),
+    )
+    @click.option(
         "--tmp",
         help=(
             f"Specify where to write all (tbpore) temporary files. [default: "
@@ -184,14 +192,7 @@ def main_cli(
 
 
 @main_cli.command()
-@click.option(
-    "-o",
-    "--outdir",
-    help="Directory to place output files",
-    default="tbpore_out",
-    show_default=True,
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
-)
+@click.help_option("-h", "--help")
 @click.option(
     "-r", "--recursive", help="Recursively search INPUTS for fastq files", is_flag=True
 )
@@ -228,7 +229,6 @@ def main_cli(
 )
 @common_opts
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
-@click.help_option("-h", "--help")
 @click.pass_context
 def process(
     ctx: click.Context,
@@ -442,14 +442,6 @@ def process(
     type=int,
     show_default=True,
     default=6,
-)
-@click.option(
-    "-o",
-    "--outdir",
-    help="Directory to place output files",
-    default="cluster_out",
-    show_default=True,
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
 )
 @common_opts
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
