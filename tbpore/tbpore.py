@@ -1,3 +1,4 @@
+import functools
 import gzip
 import shutil
 import sys
@@ -9,15 +10,15 @@ import yaml
 from loguru import logger
 
 from tbpore import (
+    CACHE_DIR,
+    CONFIG_FILE,
+    DECONTAMINATION_DB_INDEX,
+    DECONTAMINATION_DB_METADATA,
+    EXTERNAL_SCRIPTS_DIR,
     TMP_NAME,
     H37RV_genome,
     H37RV_mask,
     __version__,
-    cache_dir,
-    config_file,
-    decontamination_db_index,
-    decontamination_db_metadata,
-    external_scripts_dir,
 )
 from tbpore.cli import Mutex
 from tbpore.clustering import produce_clusters
@@ -35,7 +36,7 @@ log_fmt = (
 
 
 def load_config_file() -> Dict[Any, Any]:
-    with open(config_file, "r") as config_file_fh:
+    with open(CONFIG_FILE, "r") as config_file_fh:
         return yaml.safe_load(config_file_fh)
 
 
@@ -86,19 +87,7 @@ def setup_logging(verbose: bool, quiet: bool) -> None:
     logger.add(sys.stderr, level=log_lvl, format=log_fmt)
 
 
-def ensure_decontamination_db_is_available(
-    config: Dict[Any, Any], ctx: click.Context
-) -> None:
-    if not decontamination_db_index.exists():
-        logger.error(
-            f"Decontamination DB index {decontamination_db_index} does not exist, "
-            f"please follow the instructions at {config['decom_DB']['url']} to download and configure it "
-            f"before running tbpore"
-        )
-        ctx.exit(2)
-
-
-def setup_dirs(outdir: Path, tmp: Path) -> Tuple[Path, Path]:
+def setup_dirs(outdir: Path, tmp: Path, cache: Path) -> Tuple[Path, Path]:
     """
     Setups out, tmp, log and cache dirs, and return the paths to tmp and logdirs
     """
@@ -107,8 +96,64 @@ def setup_dirs(outdir: Path, tmp: Path) -> Tuple[Path, Path]:
         tmp = outdir / TMP_NAME
     tmp.mkdir(exist_ok=True, parents=True)
     logdir = outdir / "logs"
-    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache.mkdir(parents=True, exist_ok=True)
     return tmp, logdir
+
+
+def ensure_decontamination_db_is_available(
+    path: Path, ctx: click.Context, config: dict
+):
+    if not path.exists():
+        raise click.BadParameter(
+            f"Decontamination DB index {path} does not exist, "
+            f"please follow the instructions at {config['decom_DB']['url']} to download and configure it "
+            f"before running tbpore",
+            ctx=ctx,
+            param_hint="--db",
+        )
+
+
+def common_opts(func):
+    """Common CLI options for each subcommand. To add these options to a subcommand,
+    use the decorator `@common_opts`
+    Taken from https://stackoverflow.com/a/69082528/5299417
+    """
+
+    @click.option(
+        "--tmp",
+        help=(
+            f"Specify where to write all (tbpore) temporary files. [default: "
+            f"<outdir>/{TMP_NAME}]"
+        ),
+        type=click.Path(file_okay=False, writable=True, path_type=Path),
+    )
+    @click.option(
+        "-t",
+        "--threads",
+        help="Number of threads to use in multithreaded tools",
+        type=int,
+        show_default=True,
+        default=1,
+    )
+    @click.option(
+        "--cleanup/--no-cleanup",
+        "-d/-D",
+        default=False,
+        show_default=True,
+        help="Remove all temporary files on *successful* completion",
+    )
+    @click.option(
+        "--cache",
+        type=click.Path(writable=True, file_okay=False, path_type=Path),
+        help="Path to use for the cache",
+        default=CACHE_DIR,
+        show_default=True,
+    )
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 @click.group()
@@ -151,28 +196,12 @@ def main_cli(
     "-r", "--recursive", help="Recursively search INPUTS for fastq files", is_flag=True
 )
 @click.option(
-    "--tmp",
-    help=(
-        f"Specify where to write all (tbpore) temporary files. [default: "
-        f"<outdir>/{TMP_NAME}]"
-    ),
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
-)
-@click.option(
     "-S",
     "--name",
     help=(
         "Name of the sample. By default, will use the first INPUT file with any "
         "extensions stripped"
     ),
-)
-@click.option(
-    "-t",
-    "--threads",
-    help="Number of threads to use in multithreaded tools",
-    type=int,
-    show_default=True,
-    default=1,
 )
 @click.option(
     "-A",
@@ -183,24 +212,23 @@ def main_cli(
     help="Report all mykrobe calls (turn on flag -A, --report_all_calls when calling mykrobe)",
 )
 @click.option(
-    "--cleanup/--no-cleanup",
-    "-d/-D",
-    default=False,
-    show_default=True,
-    help="Remove all temporary files on *successful* completion",
-)
-@click.option(
     "--db",
-    type=click.Path(exists=True, path_type=Path),
-    help=f"Path to the decontaminaton database [default: {decontamination_db_index}]",
+    type=Path,
+    help="Path to the decontaminaton database",
+    default=DECONTAMINATION_DB_INDEX,
+    show_default=True,
 )
 @click.option(
     "-m",
     "--metadata",
     type=click.Path(exists=True, path_type=Path),
-    help=f"Path to the decontaminaton database metadata file [default: {decontamination_db_metadata}]",
+    help="Path to the decontaminaton database metadata file",
+    default=DECONTAMINATION_DB_METADATA,
+    show_default=True,
 )
+@common_opts
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
+@click.help_option("-h", "--help")
 @click.pass_context
 def process(
     ctx: click.Context,
@@ -214,6 +242,7 @@ def process(
     cleanup: bool,
     db: Path,
     metadata: Path,
+    cache: Path,
 ):
     """Single-sample TB genomic analysis from Nanopore sequencing data
 
@@ -221,12 +250,15 @@ def process(
     be joined into a single fastq file, so ensure they're all part of the same
     sample/isolate.
     """
+    config = load_config_file()
+
     if not inputs:
         logger.error("No INPUT files given")
         ctx.exit(2)
 
-    config = load_config_file()
-    if not metadata and db:
+    ensure_decontamination_db_is_available(db, ctx, config)
+
+    if metadata == DECONTAMINATION_DB_METADATA and db != DECONTAMINATION_DB_INDEX:
         logger.info(
             "You have specified an alternate path to the decontamination database "
             "but are using the default metadata file. If you are using the tbpore-provided "
@@ -234,20 +266,11 @@ def process(
             "file"
         )
 
-    if metadata:
-        if not db:
-            logger.info(
-                "You have specified a custom metadata file, but the default "
-                "decontamination database. We trust you know what you're doing"
-            )
-    else:
-        metadata = decontamination_db_metadata
-
-    # we don't need to check if a path provided by the user exists as click does that
-    if not db:
-        logger.debug("No decontamination database specified, using default...")
-        ensure_decontamination_db_is_available(config, ctx)
-        db = decontamination_db_index
+    if metadata != DECONTAMINATION_DB_METADATA and db == DECONTAMINATION_DB_INDEX:
+        logger.info(
+            "You have specified a custom metadata file, but the default "
+            "decontamination database. We trust you know what you're doing"
+        )
 
     if not name:
         name = inputs[0].name.split(".")[0]
@@ -255,7 +278,7 @@ def process(
             name = "input"
         logger.debug(f"No sample name found; using '{name}'")
 
-    tmp, logdir = setup_dirs(outdir, tmp)
+    tmp, logdir = setup_dirs(outdir, tmp, cache)
 
     infile = tmp / f"{name}.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, recursive, ctx)
@@ -292,7 +315,7 @@ def process(
         tool=sys.executable,
         input=f"-i {sorted_decontaminated_bam} -m {metadata}",
         output=f"-o {filter_contamination_dir}",
-        params=f"{external_scripts_dir/'filter_contamination.py'} {config['filter_contamination']['params']}",
+        params=f"{EXTERNAL_SCRIPTS_DIR / 'filter_contamination.py'} {config['filter_contamination']['params']}",
         logdir=logdir,
     )
 
@@ -322,7 +345,7 @@ def process(
         input=f"-i {subsampled_reads}",
         output=f"-o {mykrobe_output}",
         params=f"predict {report_all_mykrobe_calls_param} --sample {name} -t {threads} --tmp {tmp} "
-        f"--skeleton_dir {cache_dir} {config['mykrobe']['predict']['params']}",
+        f"--skeleton_dir {CACHE_DIR} {config['mykrobe']['predict']['params']}",
         logdir=logdir,
     )
 
@@ -373,7 +396,7 @@ def process(
         tool=sys.executable,
         input=f"-i {snps_file}",
         output=f"-o {filtered_snps_file}",
-        params=f"{external_scripts_dir/'apply_filters.py'} {filtering_options}",
+        params=f"{EXTERNAL_SCRIPTS_DIR / 'apply_filters.py'} {filtering_options}",
         logdir=logdir,
     )
 
@@ -382,7 +405,7 @@ def process(
         tool=sys.executable,
         input=f"-i {filtered_snps_file} -f {H37RV_genome} -m {H37RV_mask}",
         output=f"-o {consensus_file}",
-        params=f"{external_scripts_dir/'consensus.py'} --sample-id {name} {config['consensus']['params']}",
+        params=f"{EXTERNAL_SCRIPTS_DIR / 'consensus.py'} --sample-id {name} {config['consensus']['params']}",
         logdir=logdir,
     )
 
@@ -411,6 +434,7 @@ def process(
 
 
 @main_cli.command()
+@click.help_option("-h", "--help")
 @click.option(
     "-T",
     "--threshold",
@@ -427,29 +451,7 @@ def process(
     show_default=True,
     type=click.Path(file_okay=False, writable=True, path_type=Path),
 )
-@click.option(
-    "--tmp",
-    help=(
-        f"Specify where to write all (tbpore) temporary files. [default: "
-        f"<outdir>/{TMP_NAME}]"
-    ),
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
-)
-@click.option(
-    "-t",
-    "--threads",
-    help="Number of threads to use in multithreaded tools",
-    type=int,
-    show_default=True,
-    default=1,
-)
-@click.option(
-    "--cleanup/--no-cleanup",
-    "-d/-D",
-    default=False,
-    show_default=True,
-    help="Remove all temporary files on *successful* completion",
-)
+@common_opts
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
 def cluster(
@@ -460,6 +462,7 @@ def cluster(
     tmp: Path,
     threads: int,
     cleanup: bool,
+    cache: Path,
 ):
     """Cluster consensus sequences
 
@@ -476,7 +479,7 @@ def cluster(
 
     config = load_config_file()
 
-    tmp, logdir = setup_dirs(outdir, tmp)
+    tmp, logdir = setup_dirs(outdir, tmp, cache)
 
     infile = tmp / "all_sequences.fq.gz"
     concatenate_inputs_into_infile(inputs, infile, False, ctx)
