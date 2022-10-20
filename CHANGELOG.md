@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+## [0.3.1]
+
 ### Fixed
 
 - `data/` and `external_scripts/` directories were not having their contents included in site-packages when installing from sdist
@@ -44,7 +46,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - First release - so everything you see is new!
 
-[unreleased]: https://github.com/mbhall88/tbpore/compare/0.3.0...HEAD
+[unreleased]: https://github.com/mbhall88/tbpore/compare/0.3.1...HEAD
+[0.3.1]: https://github.com/mbhall88/tbpore/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/mbhall88/tbpore/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/mbhall88/tbpore/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/mbhall88/tbpore/compare/0.1.0...0.1.1
