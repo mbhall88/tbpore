@@ -7,6 +7,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Fixed
+
+- `data/` and `external_scripts/` directories were not having their contents included in site-packages when installing from sdist
+
 ## [0.3.0]
 
 ### Added
