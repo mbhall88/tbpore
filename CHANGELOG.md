@@ -7,6 +7,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Changed
+
+- When `--name` is not given, take name to be the filename minus the fastq (and optional gz) suffix. Previously, we took everything before the first `.` [[#45][45]]
+
 ## [0.3.1]
 
 ### Fixed
@@ -54,3 +58,4 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [0.1.0]: https://github.com/mbhall88/tbpore/releases/tag/0.1.0
 [34]: https://github.com/mbhall88/tbpore/issues/34
 [43]: https://github.com/mbhall88/tbpore/issues/43
+[45]: https://github.com/mbhall88/tbpore/issues/45

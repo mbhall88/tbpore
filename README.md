@@ -187,8 +187,8 @@ Options:
   -h, --help                      Show this message and exit.
   -r, --recursive                 Recursively search INPUTS for fastq files
   -S, --name TEXT                 Name of the sample. By default, will use the
-                                  first INPUT file with any extensions
-                                  stripped
+                                  first INPUT file with fastq extensions
+                                  removed
   -A, --report_all_mykrobe_calls  Report all mykrobe calls (turn on flag -A,
                                   --report_all_calls when calling mykrobe)
   --db PATH                       Path to the decontaminaton database

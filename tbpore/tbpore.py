@@ -200,8 +200,8 @@ def main_cli(
     "-S",
     "--name",
     help=(
-        "Name of the sample. By default, will use the first INPUT file with any "
-        "extensions stripped"
+        "Name of the sample. By default, will use the first INPUT file with fastq "
+        "extensions removed"
     ),
 )
 @click.option(
