@@ -55,3 +55,8 @@ def parse_verbose_filter_params(filters_dict: Dict[Any, Any]) -> str:
         if key in filters_dict:
             flags.append(f"-{op} {filters_dict[key]}")
     return " ".join(flags)
+
+
+def fastq_prefix(path: Union[str, Path]) -> str:
+    fname = Path(path).name
+    return re.sub(r"\.f(ast)?q(\.gz)?$", "", fname, count=1)

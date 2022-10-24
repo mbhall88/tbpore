@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest import mock
 
-from tbpore.utils import find_fastq_files, is_fastq
+from tbpore.utils import fastq_prefix, find_fastq_files, is_fastq
 
 
 class TestIsFastq:
@@ -78,3 +78,24 @@ def test_find_fastq_files(mock_iglob, mock_is_file):
     )
 
     assert actual == expected
+
+
+class TestFastqPrefix:
+    def test_no_fastq_prefix_returns_input_filename(self):
+        path = "path/to/my.file"
+
+        actual = fastq_prefix(path)
+        expected = Path(path).name
+
+        assert actual == expected
+
+    def test_all_fastq_extensions_return_the_same(self):
+        exts = ["fastq", "fq", "fastq.gz", "fq.gz"]
+
+        expected = "my.file"
+        for ext in exts:
+            path = f"path/to/my.file.{ext}"
+
+            actual = fastq_prefix(path)
+
+            assert actual == expected
