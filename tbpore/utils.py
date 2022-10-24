@@ -59,4 +59,4 @@ def parse_verbose_filter_params(filters_dict: Dict[Any, Any]) -> str:
 
 def fastq_prefix(path: Union[str, Path]) -> str:
     fname = Path(path).name
-    return re.sub(r"\.f(ast)?q(\.gz)?$", "", fname, count=1)
+    return FASTQ_REGEX.sub("", fname, count=1)

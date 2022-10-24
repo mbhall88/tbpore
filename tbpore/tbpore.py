@@ -25,6 +25,7 @@ from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
+    fastq_prefix,
     find_fastq_files,
     parse_verbose_filter_params,
 )
@@ -273,7 +274,7 @@ def process(
         )
 
     if not name:
-        name = inputs[0].name.split(".")[0]
+        name = fastq_prefix(inputs[0])
         if not name:
             name = "input"
         logger.debug(f"No sample name found; using '{name}'")
