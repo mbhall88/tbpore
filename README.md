@@ -13,8 +13,8 @@
 
 # Table of Contents
 - [Synopsis](#synopsis)
+- [Citation](#citation)
 - [Installation](#installation)
-- [Walkthrough](#walkthrough)
 - [Configuring the decontamination database index](#configuring-the-decontamination-database-index)
 - [Performance](#performance)
 - [Usage](#usage)
@@ -29,6 +29,15 @@ Variant description is done by decontaminating reads, calling variants with
 Antibiotic resistance is predicted with [mykrobe](https://github.com/Mykrobe-tools/mykrobe).
 Second, `tbpore` can be used to cluster TB samples based on their genotyping and a given distance threshold (command
 `tbpore cluster`).
+
+## Citation
+
+TBpore is a slimmed-down version of the [full pipeline](https://github.com/mbhall88/head_to_head_pipeline) used for https://doi.org/10.1101/2022.03.04.22271870
+
+
+> Hall, M. B. *et al*. Nanopore sequencing for *Mycobacterium tuberculosis* drug susceptibility testing and outbreak investigation. *Medrxiv* 2022.03.04.22271870 (2022) [doi:10.1101/2022.03.04.22271870][doi].
+
+[doi]: https://doi.org/10.1101/2022.03.04.22271870
 
 ## Installation
 
