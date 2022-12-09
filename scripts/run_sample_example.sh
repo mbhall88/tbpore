@@ -1,9 +1,13 @@
 #!/usr/bin/env sh
-set -e
-set -u
+set -eu
 
-reads="ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR903/ERR9030361/mada_1-7.subsampled.fastq.gz"
+reads_url="ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR903/ERR9030361/mada_1-7.subsampled.fastq.gz"
 
 mkdir -p sample_example
-wget $reads -O sample_example/mada_1-7.subsampled.fastq.gz
-tbpore process -o sample_example/tbpore_out --cleanup sample_example/mada_1-7.subsampled.fastq.gz
+
+reads="sample_example/mada_1-7.subsampled.fastq.gz"
+if [ ! -f "$reads" ]; then
+    wget "$reads_url" -O "$reads"
+fi
+
+tbpore process -o sample_example/tbpore_out --cleanup "$reads"
