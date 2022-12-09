@@ -10,4 +10,4 @@ if [ ! -f "$reads" ]; then
     wget "$reads_url" -O "$reads"
 fi
 
-tbpore process -o sample_example/tbpore_out --cleanup "$reads"
+poetry run tbpore process -o sample_example/tbpore_out --cleanup "$reads"
