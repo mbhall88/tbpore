@@ -7,6 +7,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Removed
+
+- Usage of deprecated `iteritems` function from pandas. This will removed an annoying deprecated warning when running `tbpore cluster`
+
 ## [0.3.2]
 
 ### Changed

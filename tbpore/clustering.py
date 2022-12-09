@@ -52,7 +52,7 @@ def load_matrix(fpath, delim: str = DELIM, name: str = "") -> pd.Series:
 def matrix_to_graph(
     mx: pd.Series, threshold: int, include_singletons: bool = False
 ) -> nx.Graph:
-    edges = [(s1, s2, dist) for (s1, s2), dist in mx.iteritems() if dist <= threshold]
+    edges = [(s1, s2, dist) for (s1, s2), dist in mx.items() if dist <= threshold]
     graph = nx.Graph()
     graph.add_weighted_edges_from(edges)
     if include_singletons:
