@@ -1,7 +1,9 @@
 import fileinput
 import glob
 import gzip
+import hashlib
 import re
+import shutil
 import urllib.request
 from pathlib import Path
 from typing import IO, Any, Dict, Set, Union
@@ -64,5 +66,37 @@ def fastq_prefix(path: Union[str, Path]) -> str:
 
 
 def download_file(url: str, filename: Path):
-    # download the file
     urllib.request.urlretrieve(url=url, filename=filename)
+
+
+def validate_sha256(file_path: Path, expected_hash: str) -> bool:
+    hash_obj = hashlib.sha256()
+
+    # process the file in (byte) chunks
+    chunk_size = 1_024 * 10_000
+    with open(file_path, "rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            hash_obj.update(chunk)
+
+    # get the hexadecimal representation of the sha256 hash
+    actual_hash = hash_obj.hexdigest()
+
+    return actual_hash == expected_hash
+
+
+def decompress_file(
+    compressed_file: Path, decompressed_file: Path, remove_compressed: bool = False
+):
+    """Decompress a gzip-compressed file
+    `remove_compressed` indicates whether to delete the compressed file after
+    successful decompression
+    """
+    with gzip.open(compressed_file, "rb") as f_in:
+        with open(decompressed_file, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    if remove_compressed:
+        compressed_file.unlink(missing_ok=True)

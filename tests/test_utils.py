@@ -1,8 +1,16 @@
+import gzip
 import tempfile
 from pathlib import Path
 from unittest import mock
 
-from tbpore.utils import download_file, fastq_prefix, find_fastq_files, is_fastq
+from tbpore.utils import (
+    decompress_file,
+    download_file,
+    fastq_prefix,
+    find_fastq_files,
+    is_fastq,
+    validate_sha256,
+)
 
 
 class TestIsFastq:
@@ -115,3 +123,58 @@ def test_download_file():
 """
 
     assert result == expected
+
+
+class TestValidateSha256:
+    def test_matches(self):
+        url = "https://raw.githubusercontent.com/mbhall88/head_to_head_pipeline/c4e798608e9d9ffad5853ecda32007160feb500a/analysis/resistance_prediction/lsf.yaml"
+        expected_hash = (
+            "50966ec6b51c8ad11d8e43e759b6fd0560b05590c90ceaed8b471ae448e68048"
+        )
+        with tempfile.NamedTemporaryFile() as tmp:
+            filename = Path(tmp.name)
+            download_file(url, filename)
+            assert validate_sha256(filename, expected_hash)
+
+    def test_doesnt_match(self):
+        url = "https://raw.githubusercontent.com/mbhall88/head_to_head_pipeline/c4e798608e9d9ffad5853ecda32007160feb500a/analysis/resistance_prediction/lsf.yaml"
+        expected_hash = (
+            "40966ec6b51c8ad11d8e43e759b6fd0560b05590c90ceaed8b471ae448e68048"
+        )
+        with tempfile.NamedTemporaryFile() as tmp:
+            filename = Path(tmp.name)
+            download_file(url, filename)
+            assert not validate_sha256(filename, expected_hash)
+
+
+class TestDecompressFile:
+    def test_decompress_and_dont_remove(self):
+        p = Path("tmp.txt.gz")
+        with gzip.open(p, "wb") as fp:
+            fp.write("foo".encode())
+
+        decompressed = p.with_suffix("")
+        decompress_file(p, decompressed, remove_compressed=False)
+
+        result = decompressed.read_text()
+        expected = "foo"
+
+        assert result == expected
+        assert p.exists()
+        p.unlink()
+        decompressed.unlink()
+
+    def test_decompress_and_remove(self):
+        p = Path("tmp.txt.gz")
+        with gzip.open(p, "wb") as fp:
+            fp.write("foo".encode())
+
+        decompressed = p.with_suffix("")
+        decompress_file(p, decompressed, remove_compressed=True)
+
+        result = decompressed.read_text()
+        expected = "foo"
+
+        assert result == expected
+        assert not p.exists()
+        decompressed.unlink()
