@@ -1,7 +1,8 @@
+import tempfile
 from pathlib import Path
 from unittest import mock
 
-from tbpore.utils import fastq_prefix, find_fastq_files, is_fastq
+from tbpore.utils import download_file, fastq_prefix, find_fastq_files, is_fastq
 
 
 class TestIsFastq:
@@ -99,3 +100,18 @@ class TestFastqPrefix:
             actual = fastq_prefix(path)
 
             assert actual == expected
+
+
+def test_download_file():
+    url = "https://raw.githubusercontent.com/mbhall88/head_to_head_pipeline/c4e798608e9d9ffad5853ecda32007160feb500a/analysis/resistance_prediction/lsf.yaml"
+    with tempfile.NamedTemporaryFile() as tmp:
+        filename = Path(tmp.name)
+        download_file(url, filename)
+        result = filename.read_text()
+
+    expected = """__default__:
+  - "-E '${SOFTWAREDIR}/singularity_preexec_test/singularity_test.sh -t 20s /'"
+
+"""
+
+    assert result == expected

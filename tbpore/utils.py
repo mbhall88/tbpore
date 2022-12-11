@@ -2,6 +2,7 @@ import fileinput
 import glob
 import gzip
 import re
+import urllib.request
 from pathlib import Path
 from typing import IO, Any, Dict, Set, Union
 
@@ -60,3 +61,8 @@ def parse_verbose_filter_params(filters_dict: Dict[Any, Any]) -> str:
 def fastq_prefix(path: Union[str, Path]) -> str:
     fname = Path(path).name
     return FASTQ_REGEX.sub("", fname, count=1)
+
+
+def download_file(url: str, filename: Path):
+    # download the file
+    urllib.request.urlretrieve(url=url, filename=filename)
