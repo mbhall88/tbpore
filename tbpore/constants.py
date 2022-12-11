@@ -5,7 +5,7 @@ repo_root = Path(__file__).parent.parent.resolve()
 H37RV_genome = repo_root / "data/H37RV_genome/h37rv.fa.gz"
 H37RV_mask = repo_root / "data/H37RV_genome/compass-mask.bed"
 DECONTAMINATION_DB_INDEX = (
-    repo_root / "data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi"
+    Path.home() / ".tbpore/decontamination_db/remove_contam.map-ont.mmi"
 )
 DECONTAMINATION_DB_METADATA = repo_root / "data/decontamination_db/remove_contam.tsv.gz"
 CACHE_DIR = Path.home() / ".cache"

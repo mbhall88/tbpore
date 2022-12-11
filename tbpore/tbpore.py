@@ -25,9 +25,12 @@ from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
+    decompress_file,
+    download_file,
     fastq_prefix,
     find_fastq_files,
     parse_verbose_filter_params,
+    validate_sha256,
 )
 
 log_fmt = (
@@ -500,16 +503,74 @@ def cluster(
 
 @main_cli.command()
 @click.help_option("-h", "--help")
-@click.option("-o", "--output", help="Download database to a specified filepath", type=Path)
-@click.option("-f", "--force", help="Force override if the database already exists", is_flag=True)
-def download(output: Path, force: bool):
+@click.option(
+    "-o",
+    "--output",
+    help="Download database to a specified filepath",
+    type=Path,
+    default=DECONTAMINATION_DB_INDEX,
+    show_default=True,
+)
+@click.option(
+    "-f", "--force", help="Force override if the database already exists", is_flag=True
+)
+@click.pass_context
+def download(ctx: click.Context, output: Path, force: bool):
     """Download and validate the decontamination database"""
-    #todo get default location for db if output not given
-    #todo check if db exists and whether force was given
-    #todo download db
-    #todo validate sha256 of compressed db
-    #todo decompress db
-    #todo validate sha256 of decompressed db
+    if output.exists() and not force:
+        logger.error(
+            f"Output path {output} already exists and --force was not used. Exiting to "
+            "avoid overwriting existing file"
+        )
+        ctx.exit(2)
+
+    db_config = load_config_file().get("decontamination_db")
+    if db_config is None:
+        logger.error("Missing expected key 'decontamination_db' in config file")
+        ctx.exit(2)
+
+    url = db_config.get("url")
+    if url is None:
+        logger.error("Missing URL for decontamination database")
+        ctx.exit(2)
+
+    expected_compressed_hash = db_config.get("compressed_sha256")
+    if expected_compressed_hash is None:
+        logger.error("Missing compressed sha256 hash for decontamination database")
+        ctx.exit(2)
+
+    expected_decompressed_hash = db_config.get("decompressed_sha256")
+    if expected_decompressed_hash is None:
+        logger.error("Missing decompressed sha256 hash for decontamination database")
+        ctx.exit(2)
+
+    logger.info(
+        f"Downloading decontamination database to {output}. This may take a while..."
+    )
+    compressed_output = Path(f"{output}.gz")
+    download_file(url, compressed_output)
+
+    logger.info("Validating the decontamination database...")
+    if not validate_sha256(compressed_output, expected_compressed_hash):
+        logger.error(
+            "The sha256 hash for the compressed decontamination database did not match "
+            "the expected hash"
+        )
+        ctx.exit(2)
+    logger.success("Downloaded and validated the decontamination database")
+
+    logger.info("Decompressing the decontamination database...")
+    decompress_file(compressed_output, output, remove_compressed=True)
+
+    logger.info("Validating the decompressed decontamination database...")
+    if not validate_sha256(output, expected_decompressed_hash):
+        logger.error(
+            "The sha256 hash for the decompressed decontamination database did not match the expected hash"
+        )
+        ctx.exit(2)
+    logger.success("Decompressed and validated the decontamination database")
+
+    logger.success("Done!")
 
 
 def main():

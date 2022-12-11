@@ -59,3 +59,8 @@ consensus:
 
 psdm:
   params: "--ignore-case --quiet --sort"
+
+decontamination_db:
+  url:                 "https://figshare.com/ndownloader/files/36708444"
+  compressed_sha256:   ""
+  decompressed_sha256: "8677817748e9d76c19eb888230dfd4eebff51105dfb15d1f0c02e8361cd21001"
