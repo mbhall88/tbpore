@@ -62,5 +62,5 @@ psdm:
 
 decontamination_db:
   url:                 "https://figshare.com/ndownloader/files/36708444"
-  compressed_sha256:   ""
+  compressed_sha256:   "f9b66d7a5410455199702a77d45f57625ddd0418f81d3ba8a8369781c56187cc"
   decompressed_sha256: "8677817748e9d76c19eb888230dfd4eebff51105dfb15d1f0c02e8361cd21001"
