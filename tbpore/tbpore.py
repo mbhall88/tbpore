@@ -498,6 +498,20 @@ def cluster(
     logger.success("Done")
 
 
+@main_cli.command()
+@click.help_option("-h", "--help")
+@click.option("-o", "--output", help="Download database to a specified filepath", type=Path)
+@click.option("-f", "--force", help="Force override if the database already exists", is_flag=True)
+def download(output: Path, force: bool):
+    """Download and validate the decontamination database"""
+    #todo get default location for db if output not given
+    #todo check if db exists and whether force was given
+    #todo download db
+    #todo validate sha256 of compressed db
+    #todo decompress db
+    #todo validate sha256 of decompressed db
+
+
 def main():
     main_cli()
 
