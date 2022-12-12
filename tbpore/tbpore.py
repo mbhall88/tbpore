@@ -524,6 +524,9 @@ def download(ctx: click.Context, output: Path, force: bool):
         )
         ctx.exit(2)
 
+    if not output.parent.exists():
+        output.parent.mkdir(parents=True)
+
     db_config = load_config_file().get("decontamination_db")
     if db_config is None:
         logger.error("Missing expected key 'decontamination_db' in config file")
