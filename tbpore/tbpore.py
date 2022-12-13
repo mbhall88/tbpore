@@ -345,7 +345,7 @@ def process(
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
     rasusa = ExternalTool(
         tool="rasusa",
-        input=f"-i {decontaminated_nanopore_reads}",
+        input=f"-i {sorted_fastq}",
         output=f"-o {subsampled_reads}",
         params=config["rasusa"]["params"],
         logdir=logdir,
