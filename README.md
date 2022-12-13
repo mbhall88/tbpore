@@ -170,8 +170,9 @@ Options:
                  exclusive with verbose.
 
 Commands:
-  cluster  Cluster consensus sequences
-  process  Single-sample TB genomic analysis from Nanopore sequencing data
+  cluster   Cluster consensus sequences
+  download  Download and validate the decontamination database
+  process   Single-sample TB genomic analysis from Nanopore sequencing data
 ```
 
 ### process
