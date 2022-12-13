@@ -12,6 +12,7 @@
 [TOC]: #
 
 # Table of Contents
+
 - [Synopsis](#synopsis)
 - [Citation](#citation)
 - [Installation](#installation)
@@ -22,20 +23,27 @@
 # Synopsis
 
 `tbpore` is a tool with two main goals.
-First is to process Nanopore Mycobacterium tuberculosis sequencing data to describe variants with respect to the
+First is to process Nanopore Mycobacterium tuberculosis sequencing data to describe
+variants with respect to the
 canonical TB strain H37Rv and predict antibiotic resistance (command `tbpore process`).
 Variant description is done by decontaminating reads, calling variants with
 [bcftools](https://github.com/samtools/bcftools) and filtering variants.
-Antibiotic resistance is predicted with [mykrobe](https://github.com/Mykrobe-tools/mykrobe).
-Second, `tbpore` can be used to cluster TB samples based on their genotyping and a given distance threshold (command
+Antibiotic resistance is predicted
+with [mykrobe](https://github.com/Mykrobe-tools/mykrobe).
+Second, `tbpore` can be used to cluster TB samples based on their genotyping and a given
+distance threshold (command
 `tbpore cluster`).
 
 ## Citation
 
-TBpore is a slimmed-down version of the [full pipeline](https://github.com/mbhall88/head_to_head_pipeline) used for https://doi.org/10.1101/2022.03.04.22271870
+TBpore is a slimmed-down version of
+the [full pipeline](https://github.com/mbhall88/head_to_head_pipeline) used
+for https://doi.org/10.1101/2022.03.04.22271870
 
 
-> Hall, M. B. *et al*. Nanopore sequencing for *Mycobacterium tuberculosis* drug susceptibility testing and outbreak investigation. *Medrxiv* 2022.03.04.22271870 (2022) [doi:10.1101/2022.03.04.22271870][doi].
+> Hall, M. B. *et al*. Nanopore sequencing for *Mycobacterium tuberculosis* drug
+> susceptibility testing and outbreak investigation. *Medrxiv* 2022.03.04.22271870 (
+2022) [doi:10.1101/2022.03.04.22271870][doi].
 
 [doi]: https://doi.org/10.1101/2022.03.04.22271870
 
@@ -64,9 +72,11 @@ The python components of `tbpore` are availble to install through [PyPI].
 pip install tbpore
 ```
 
-**However**, you will need to install the following dependencies, which cannot be installed through PyPI.
+**However**, you will need to install the following dependencies, which cannot be
+installed through PyPI.
 
 #### Dependencies
+
 * [`rasusa`](https://github.com/mbhall88/rasusa)
 * [`psdm`](https://github.com/mbhall88/psdm) version 0.1
 * [`samtools`](https://github.com/samtools/samtools) version 1.13
@@ -75,7 +85,9 @@ pip install tbpore
 * [`minimap2`](https://github.com/lh3/minimap2) version 2.22
 * [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.0
 
-We make no guarentees about the performance of `tbpore` with versions other than those specified above. In particular, the `bcftools` version is very important. The latest versions of the other dependencies can likely be used.
+We make no guarentees about the performance of `tbpore` with versions other than those
+specified above. In particular, the `bcftools` version is very important. The latest
+versions of the other dependencies can likely be used.
 
 ### Container
 
@@ -105,65 +117,46 @@ $ docker run quay.io/biocontainers/tbpore:<tag> tbpore --help
 
 see [here][tags] for valid values for `<tag>`.
 
-### Configuring the decontamination database index
+## Configuring the decontamination database index
 
-When you run your first `tbpore process`, you will get this error:
+After installing TBpore, you will need to download the decontamination database index.
+
 ```
-ERROR    | Decontamination DB index tbpore/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi does not
-exist, please follow the instructions at https://github.com/mbhall88/tbpore#configuring-the-decontamination-database-index
-to download and configure it before running tbpore
-```
-This means you need to download the [minimap2](https://github.com/lh3/minimap2) decontamination database index before
-proceeding. You can [download this index here](https://figshare.com/ndownloader/files/36708444) or by running:
-```shell
-wget https://figshare.com/ndownloader/files/36708444 -O tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+$ tbpore download
 ```
 
-Once the download is complete, you can:
+By default, this will download the index
+to `${HOME}/.tbpore/decontamination_db/remove_contam.map-ont.mmi`, as this is the
+default location `tbpore process` will search for.
 
-1. Ensure that the compressed index was transferred correctly by checking its `md5sum`:
-```shell
-md5sum tbpore.remove_contam.fa.gz.map-ont.mmi.gz
-82d050e0f1cba052f0c94f16fcb32f7b  tbpore.remove_contam.fa.gz.map-ont.mmi.gz
+If you prefer to download the index to another location, this can be done with
+
+```
+$ tbpore download -o other/location/db.mmi
 ```
 
-2. Decompress the index:
-```shell
-gunzip tbpore.remove_contam.fa.gz.map-ont.mmi.gz
-```
+Keep in mind, if you specify a non-default location, you will need to use the `--db`
+option when running `tbpore process`.
 
-3. Check the md5sum of the decompressed index:
-```shell
-md5sum tbpore.remove_contam.fa.gz.map-ont.mmi
-810c5c09eaf9421128e4e52cdf2fa32a  tbpore.remove_contam.fa.gz.map-ont.mmi
-```
+## Performance
 
-4. Move the decompressed index to `<tbpore_dir>/data/decontamination_db/tbpore.remove_contam.fa.gz.map-ont.mmi`
-    * Note: you can also keep this index at a different path and specify it to `tbpore` using the `--db` option;
-
-Once these four steps above are done, you should be able to run `tbpore` on an example isolate by going into the
-`tbpore` dir and running:
-```shell
-just test-run
-```
-
-# Performance
-
-## `tbpore process`
+### `tbpore process`
 
 Benchmarked on 151 TB ONT samples with 1 thread:
+
 * Runtime: `2103`s avg, `4048`s max (s = seconds);
 * RAM: `12.4`GB avg, `13.1`GB max (GB = Gigabytes);
 
-## `tbpore cluster`
+### `tbpore cluster`
 
 Clustering 151 TB ONT samples:
+
 * Runtime: `286`s;
 * RAM: `<1`GB;
 
-# Usage
+## Usage
 
-## General usage
+### General usage
 
 ```
 Usage: tbpore [OPTIONS] COMMAND [ARGS]...
@@ -181,7 +174,7 @@ Commands:
   process  Single-sample TB genomic analysis from Nanopore sequencing data
 ```
 
-## process subcommand
+### process
 
 ```
 Usage: tbpore process [OPTIONS] [INPUTS]...
@@ -201,9 +194,8 @@ Options:
   -A, --report_all_mykrobe_calls  Report all mykrobe calls (turn on flag -A,
                                   --report_all_calls when calling mykrobe)
   --db PATH                       Path to the decontaminaton database
-                                  [default: /Users/michaelhall/Projects/tbpore
-                                  /data/decontamination_db/tbpore.remove_conta
-                                  m.fa.gz.map-ont.mmi]
+                                  [default: ${HOME}/.tbpore/decontamination_db/
+                                  remove_contam.map-ont.mmi]
   -m, --metadata PATH             Path to the decontaminaton database metadata
                                   file  [default: /Users/michaelhall/Projects/
                                   tbpore/data/decontamination_db/remove_contam
@@ -221,7 +213,7 @@ Options:
                                   /Users/michaelhall/.cache]
 ```
 
-## cluster subcommand
+### cluster
 
 ```
 Usage: tbpore cluster [OPTIONS] [INPUTS]...
@@ -250,9 +242,28 @@ Options:
                                   /Users/michaelhall/.cache]
 ```
 
+### download
+
+```
+Usage: tbpore download [OPTIONS]
+
+  Download and validate the decontamination database
+
+Options:
+  -h, --help         Show this message and exit.
+  -o, --output PATH  Download database to a specified filepath  [default: ${HOME}/
+                     .tbpore/decontamination_db/remove_contam.map-ont.mmi]
+  -f, --force        Force overwrite if the database already exists
+```
+
 [channels]: https://bioconda.github.io/#usage
+
 [conda]: https://docs.conda.io/projects/conda/en/latest/user-guide/install/
+
 [PyPI]: https://pypi.org/project/tbpore/
+
 [singularity]: https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps
+
 [tags]: https://quay.io/repository/biocontainers/tbpore?tab=tags
+
 [Docker]: https://docs.docker.com/v17.12/install/

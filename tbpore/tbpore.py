@@ -105,13 +105,13 @@ def setup_dirs(outdir: Path, tmp: Path, cache: Path) -> Tuple[Path, Path]:
 
 
 def ensure_decontamination_db_is_available(
-    path: Path, ctx: click.Context, config: dict
+    path: Path,
+    ctx: click.Context,
 ):
     if not path.exists():
         raise click.BadParameter(
-            f"Decontamination DB index {path} does not exist, "
-            f"please follow the instructions at {config['decom_DB']['url']} to download and configure it "
-            f"before running tbpore",
+            f"Decontamination DB index {path} does not exist, please run `tbpore "
+            "download` to download and validate it before running tbpore",
             ctx=ctx,
             param_hint="--db",
         )
@@ -260,7 +260,7 @@ def process(
         logger.error("No INPUT files given")
         ctx.exit(2)
 
-    ensure_decontamination_db_is_available(db, ctx, config)
+    ensure_decontamination_db_is_available(db, ctx)
 
     if metadata == DECONTAMINATION_DB_METADATA and db != DECONTAMINATION_DB_INDEX:
         logger.info(
@@ -512,7 +512,7 @@ def cluster(
     show_default=True,
 )
 @click.option(
-    "-f", "--force", help="Force override if the database already exists", is_flag=True
+    "-f", "--force", help="Force overwrite if the database already exists", is_flag=True
 )
 @click.pass_context
 def download(ctx: click.Context, output: Path, force: bool):

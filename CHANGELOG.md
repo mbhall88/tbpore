@@ -7,6 +7,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Added
+
+- `download` subcommand to download and validate the decontamination database
+
+### Changed
+
+- Default (expected) location of the decontamination database is now `${HOME}/.tbpore/decontamination_db/remove_contam.map-ont.mmi`
+
 ### Removed
 
 - Usage of deprecated `iteritems` function from pandas. This will removed an annoying deprecated warning when running `tbpore cluster`
