@@ -5,10 +5,7 @@ channels:
   - defaults
 dependencies:
   - "python>=3.8,<4.0"
-  - just=0.10
-  - ca-certificates
-  - certifi
-  - openssl
+  - just
   - ripgrep
   - poetry=1.1
   - mykrobe=0.12
@@ -16,5 +13,5 @@ dependencies:
   - samtools=1.13
   - bcftools=1.13
   - minimap2=2.22
-  - seqkit=2.0.0
+  - seqkit=2
   - psdm=0.1.0
