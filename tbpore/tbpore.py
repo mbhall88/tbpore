@@ -333,6 +333,15 @@ def process(
         logdir=logdir,
     )
 
+    sorted_fastq = tmp / f"{name}.sorted.fastq.gz"
+    sort_decontaminated_reads = ExternalTool(
+        tool="seqkit",
+        input=str(decontaminated_nanopore_reads),
+        output=f"-o {sorted_fastq}",
+        params=config["sort_decontaminated_reads"]["params"],
+        logdir=logdir,
+    )
+
     subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
     rasusa = ExternalTool(
         tool="rasusa",
@@ -419,6 +428,7 @@ def process(
         index_sorted_decontaminated_bam,
         filter_contamination,
         extract_decontaminated_nanopore_reads,
+        sort_decontaminated_reads,
         rasusa,
         mykrobe,
         minimap,
