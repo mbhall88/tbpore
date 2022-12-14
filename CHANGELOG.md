@@ -10,6 +10,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - `download` subcommand to download and validate the decontamination database
+- sorting of the decontaminated fastq file to ensure subsampling is reproducible regardless of whether a combined fastq or directory of fastqs is provided
 
 ### Changed
 
