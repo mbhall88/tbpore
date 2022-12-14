@@ -44,17 +44,17 @@ bcftools:
 filter:
   params: "-P --verbose --overwrite"
   verbose_params:
-    min_depth:       0
+    min_depth:       5
     min_fed:         0.2
     max_depth:       0
-    min_qual:        85
+    min_qual:        25
     min_strand_bias: 1
     min_bqb:         0
     min_mqb:         0
     min_rpb:         0
     max_sgb:         0
     min_vdb:         0.00001
-    min_mq:          0
+    min_mq:          30
     min_frs:         0.90
 
 consensus:
