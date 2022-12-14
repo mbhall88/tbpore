@@ -7,18 +7,24 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+## [0.4.0]
+
 ### Added
 
 - `download` subcommand to download and validate the decontamination database
-- sorting of the decontaminated fastq file to ensure subsampling is reproducible regardless of whether a combined fastq or directory of fastqs is provided
+- sorting of the decontaminated fastq file to ensure subsampling is reproducible regardless of whether a combined fastq or directory of fastqs is provided [[#48][48]]
 
 ### Changed
 
 - Default (expected) location of the decontamination database is now `${HOME}/.tbpore/decontamination_db/remove_contam.map-ont.mmi`
+- Variant filtering params
+  * minimum depth changed from 0 to 5
+  * minimum variant quality (QUAL) score from 85 to 25
+  * minimum mapping quality from 0 to 30
 
 ### Removed
 
-- Usage of deprecated `iteritems` function from pandas. This will removed an annoying deprecated warning when running `tbpore cluster`
+- Usage of deprecated `iteritems` function from pandas. This will remove an annoying deprecated warning when running `tbpore cluster`
 
 ## [0.3.2]
 
@@ -66,6 +72,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - First release - so everything you see is new!
 
 [unreleased]: https://github.com/mbhall88/tbpore/compare/0.3.2...HEAD
+[0.4.0]: https://github.com/mbhall88/tbpore/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/mbhall88/tbpore/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/mbhall88/tbpore/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/mbhall88/tbpore/compare/0.2.0...0.3.0
@@ -75,3 +82,4 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [34]: https://github.com/mbhall88/tbpore/issues/34
 [43]: https://github.com/mbhall88/tbpore/issues/43
 [45]: https://github.com/mbhall88/tbpore/issues/45
+[48]: https://github.com/mbhall88/tbpore/issues/48
