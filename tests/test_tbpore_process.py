@@ -136,8 +136,8 @@ class TestExternalToolsExecution:
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 filter_vcf_cl
-                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
-                f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
+                f"-q 25 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 30 -x 0.2 "
                 f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
             )
 
@@ -272,8 +272,8 @@ class TestExternalToolsExecution:
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 filter_vcf_cl
-                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 0 -D 0 "
-                f"-q 85 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 0 -x 0.2 "
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
+                f"-q 25 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 30 -x 0.2 "
                 f"-o {td}/custom_name.snps.filtered.bcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
             )
 
