@@ -78,12 +78,12 @@ installed through PyPI.
 #### Dependencies
 
 * [`rasusa`](https://github.com/mbhall88/rasusa)
-* [`psdm`](https://github.com/mbhall88/psdm) version 0.1
+* [`psdm`](https://github.com/mbhall88/psdm) version 0.1.x
 * [`samtools`](https://github.com/samtools/samtools) version 1.13
 * [`bcftools`](https://github.com/samtools/bcftools) version 1.13
-* [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version ≥ 0.12
+* [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version 0.12.x
 * [`minimap2`](https://github.com/lh3/minimap2) version 2.22
-* [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.0
+* [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.x
 
 We make no guarentees about the performance of `tbpore` with versions other than those
 specified above. In particular, the `bcftools` version is very important. The latest
