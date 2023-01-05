@@ -38,14 +38,12 @@ distance threshold (command
 
 TBpore is a slimmed-down version of
 the [full pipeline](https://github.com/mbhall88/head_to_head_pipeline) used
-for https://doi.org/10.1101/2022.03.04.22271870
+in our paper 👇
 
 
-> Hall, M. B. *et al*. Nanopore sequencing for *Mycobacterium tuberculosis* drug
-> susceptibility testing and outbreak investigation. *Medrxiv* 2022.03.04.22271870 (
-2022) [doi:10.1101/2022.03.04.22271870][doi].
+> Hall, M. B. et al. Evaluation of Nanopore sequencing for Mycobacterium tuberculosis drug susceptibility testing and outbreak investigation: a genomic analysis. *The Lancet Microbe* 0, (2022) doi: [10.1016/S2666-5247(22)00301-9][doi].
 
-[doi]: https://doi.org/10.1101/2022.03.04.22271870
+[doi]: https://doi.org/10.1016/S2666-5247(22)00301-9
 
 ## Installation
 
