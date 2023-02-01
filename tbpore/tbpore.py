@@ -380,7 +380,7 @@ def process(
         logdir=logdir,
     )
 
-    pileup_file = f"{tmp}/{name}.subsampled.pileup.vcf"
+    pileup_file = f"{tmp}/{name}.pileup.vcf"
     bcftools_mpileup = ExternalTool(
         tool="bcftools",
         input=sorted_sam_file,
@@ -389,7 +389,7 @@ def process(
         logdir=logdir,
     )
 
-    snps_file = f"{tmp}/{name}.subsampled.snps.vcf"
+    snps_file = f"{tmp}/{name}.snps.vcf"
     bcftools_call = ExternalTool(
         tool="bcftools",
         input=pileup_file,

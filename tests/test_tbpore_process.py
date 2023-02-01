@@ -122,15 +122,15 @@ class TestExternalToolsExecution:
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -I -Q 13 "
-                f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/{TMP_NAME}/in.subsampled.pileup.vcf "
+                f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/{TMP_NAME}/in.pileup.vcf "
                 f"{td}/{TMP_NAME}/in.subsampled.sorted.sam"
             )
 
             bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_call_cl
-                == f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.subsampled.snps.vcf "
-                f"{td}/{TMP_NAME}/in.subsampled.pileup.vcf"
+                == f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.snps.vcf "
+                f"{td}/{TMP_NAME}/in.pileup.vcf"
             )
 
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
@@ -138,7 +138,7 @@ class TestExternalToolsExecution:
                 filter_vcf_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
                 f"-q 25 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 30 -x 0.2 "
-                f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.subsampled.snps.vcf"
+                f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.snps.vcf"
             )
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
@@ -258,15 +258,15 @@ class TestExternalToolsExecution:
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 8 -x -I -Q 13 "
-                f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/custom_tmp/custom_name.subsampled.pileup.vcf "
+                f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/custom_tmp/custom_name.pileup.vcf "
                 f"{td}/custom_tmp/custom_name.subsampled.sorted.sam"
             )
 
             bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_call_cl
-                == f"bcftools call --threads 8 --ploidy 1 -V indels -m -o {td}/custom_tmp/custom_name.subsampled.snps.vcf "
-                f"{td}/custom_tmp/custom_name.subsampled.pileup.vcf"
+                == f"bcftools call --threads 8 --ploidy 1 -V indels -m -o {td}/custom_tmp/custom_name.snps.vcf "
+                f"{td}/custom_tmp/custom_name.pileup.vcf"
             )
 
             filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
@@ -274,7 +274,7 @@ class TestExternalToolsExecution:
                 filter_vcf_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
                 f"-q 25 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 30 -x 0.2 "
-                f"-o {td}/custom_name.snps.filtered.bcf -i {td}/custom_tmp/custom_name.subsampled.snps.vcf"
+                f"-o {td}/custom_name.snps.filtered.bcf -i {td}/custom_tmp/custom_name.snps.vcf"
             )
 
             generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
