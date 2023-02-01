@@ -7,6 +7,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+## [0.4.1]
+
+### Changed
+
+- Removed 'subsampled' from the VCF path [[#49][49]]
+
 ## [0.4.0]
 
 ### Added
@@ -83,3 +89,4 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [43]: https://github.com/mbhall88/tbpore/issues/43
 [45]: https://github.com/mbhall88/tbpore/issues/45
 [48]: https://github.com/mbhall88/tbpore/issues/48
+[49]: https://github.com/mbhall88/tbpore/issues/49
