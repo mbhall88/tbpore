@@ -35,6 +35,9 @@ extract_decontaminated_nanopore_reads:
 sort_decontaminated_reads:
   params: "sort"
 
+stats:
+  params: "-vv -s"
+
 bcftools:
   mpileup:
     params: "-x -I -Q 13 -a 'INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF' -h100 -M10000"
