@@ -351,6 +351,15 @@ def process(
         logdir=logdir,
     )
 
+    stats_report = f"{outdir}/{name}.subsampled.stats.txt"
+    nanoq = ExternalTool(
+        tool="nanoq",
+        input=f"-i {subsampled_reads}",
+        output=f"-r {stats_report}",
+        params=config["stats"]["params"],
+        logdir=logdir,
+    )
+
     report_all_mykrobe_calls_param = "-A" if report_all_mykrobe_calls else ""
     mykrobe_output = f"{outdir}/{name}.mykrobe.json"
     mykrobe = ExternalTool(
@@ -430,6 +439,7 @@ def process(
         extract_decontaminated_nanopore_reads,
         sort_decontaminated_reads,
         rasusa,
+        nanoq,
         mykrobe,
         minimap,
         samtools_sort,

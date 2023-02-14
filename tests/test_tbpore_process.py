@@ -43,7 +43,7 @@ class TestExternalToolsExecution:
             assert result.exit_code == 0
 
             # ensure all tools were called in the correct order and with the correct parameters
-            assert run_core_mock.call_count == 14
+            assert run_core_mock.call_count == 15
 
             map_decontamination_db_cl = self.get_command_line_from_mock(
                 run_core_mock, 0
@@ -97,7 +97,13 @@ class TestExternalToolsExecution:
                 == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.sorted.fastq.gz"
             )
 
-            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                nanoq_cl
+                == f"nanoq -vv -s -r {td}/in.subsampled.stats.txt -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
+            )
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 8)
             assert (
                 mykrobe_cl
                 == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {CACHE_DIR} --ont "
@@ -105,20 +111,20 @@ class TestExternalToolsExecution:
                 f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
-            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 9)
             assert (
                 minimap2_cl
                 == f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.subsampled.sam "
                 f"{H37RV_genome} {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
-            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 9)
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 10)
             assert (
                 samtools_sort_cl
                 == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.subsampled.sorted.sam {td}/{TMP_NAME}/in.subsampled.sam"
             )
 
-            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 10)
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -I -Q 13 "
@@ -126,14 +132,14 @@ class TestExternalToolsExecution:
                 f"{td}/{TMP_NAME}/in.subsampled.sorted.sam"
             )
 
-            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 bcftools_call_cl
                 == f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.snps.vcf "
                 f"{td}/{TMP_NAME}/in.pileup.vcf"
             )
 
-            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 13)
             assert (
                 filter_vcf_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
@@ -141,7 +147,7 @@ class TestExternalToolsExecution:
                 f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.snps.vcf"
             )
 
-            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 14)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/consensus.py --sample-id in --verbose --ignore all "
@@ -178,7 +184,7 @@ class TestExternalToolsExecution:
             assert result.exit_code == 0
 
             # ensure all tools were called in the correct order and with the correct parameters
-            assert run_core_mock.call_count == 14
+            assert run_core_mock.call_count == 15
 
             map_decontamination_db_cl = self.get_command_line_from_mock(
                 run_core_mock, 0
@@ -233,7 +239,13 @@ class TestExternalToolsExecution:
                 f"-i {td}/custom_tmp/custom_name.sorted.fastq.gz"
             )
 
-            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                nanoq_cl
+                == f"nanoq -vv -s -r {td}/custom_name.subsampled.stats.txt -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
+            )
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 8)
             assert (
                 mykrobe_cl
                 == f"mykrobe predict -A --sample custom_name -t 8 --tmp {td}/custom_tmp --skeleton_dir {CACHE_DIR} --ont "
@@ -241,20 +253,20 @@ class TestExternalToolsExecution:
                 f"-m 2048MB -o {td}/custom_name.mykrobe.json -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 
-            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 9)
             assert (
                 minimap2_cl
                 == f"minimap2 -t 8 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/custom_tmp/custom_name.subsampled.sam "
                 f"{H37RV_genome} {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 
-            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 9)
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 10)
             assert (
                 samtools_sort_cl
                 == f"samtools sort -@ 8 -o {td}/custom_tmp/custom_name.subsampled.sorted.sam {td}/custom_tmp/custom_name.subsampled.sam"
             )
 
-            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 10)
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 11)
             assert (
                 bcftools_mpileup_cl
                 == f"bcftools mpileup -f {H37RV_genome} --threads 8 -x -I -Q 13 "
@@ -262,14 +274,14 @@ class TestExternalToolsExecution:
                 f"{td}/custom_tmp/custom_name.subsampled.sorted.sam"
             )
 
-            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 12)
             assert (
                 bcftools_call_cl
                 == f"bcftools call --threads 8 --ploidy 1 -V indels -m -o {td}/custom_tmp/custom_name.snps.vcf "
                 f"{td}/custom_tmp/custom_name.pileup.vcf"
             )
 
-            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 13)
             assert (
                 filter_vcf_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
@@ -277,7 +289,7 @@ class TestExternalToolsExecution:
                 f"-o {td}/custom_name.snps.filtered.bcf -i {td}/custom_tmp/custom_name.snps.vcf"
             )
 
-            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 14)
             assert (
                 generate_consensus_cl
                 == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/consensus.py --sample-id custom_name --verbose --ignore all "
