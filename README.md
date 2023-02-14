@@ -82,6 +82,7 @@ installed through PyPI.
 * [`mykrobe`](https://github.com/Mykrobe-tools/mykrobe) version 0.12.x
 * [`minimap2`](https://github.com/lh3/minimap2) version 2.22
 * [`seqkit`](https://bioinf.shenwei.me/seqkit/) version 2.x
+* [`nanoq`](https://github.com/esteinig/nanoq) version 0.9.x
 
 We make no guarentees about the performance of `tbpore` with versions other than those
 specified above. In particular, the `bcftools` version is very important. The latest
