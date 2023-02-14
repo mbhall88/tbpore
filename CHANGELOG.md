@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+## [0.5.0]
+
 ### Added
 
 - Read stats (subsampled reads) from [`nanoq`](https://github.com/esteinig/nanoq) in `tbpore process`. The stats file will be in the output directory.
@@ -81,7 +83,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - First release - so everything you see is new!
 
-[unreleased]: https://github.com/mbhall88/tbpore/compare/0.3.2...HEAD
+[unreleased]: https://github.com/mbhall88/tbpore/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/mbhall88/tbpore/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/mbhall88/tbpore/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/mbhall88/tbpore/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/mbhall88/tbpore/compare/0.3.1...0.3.2
