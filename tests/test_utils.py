@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest import mock
 
 from tbpore.utils import (
+    count_read_mapping_categories,
     decompress_file,
     download_file,
     fastq_prefix,
@@ -178,3 +179,27 @@ class TestDecompressFile:
         assert result == expected
         assert not p.exists()
         decompressed.unlink()
+
+
+def test_count_read_mapping_categories():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        d = Path(tmpdir)
+        n_keep = 10
+        with open(d / "keep.reads", "w") as fp:
+            for _ in range(n_keep):
+                print("foo", file=fp)
+
+        n_contam = 9
+        with open(d / "contaminant.reads", "w") as fp:
+            for _ in range(n_contam):
+                print("foo", file=fp)
+
+        n_unmapped = 8
+        with open(d / "unmapped.reads", "w") as fp:
+            for _ in range(n_unmapped):
+                print("foo", file=fp)
+
+        actual = count_read_mapping_categories(d)
+        expected = (n_keep, n_contam, n_unmapped)
+
+        assert actual == expected

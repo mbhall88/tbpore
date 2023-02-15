@@ -26,6 +26,7 @@ from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
+    count_read_mapping_categories,
     decompress_file,
     download_file,
     fastq_prefix,
@@ -476,18 +477,6 @@ def process(
         shutil.rmtree(tmp)
 
     logger.success("Done")
-
-
-def count_read_mapping_categories(contam_dir: Path) -> Tuple[int, int, int]:
-    to_keep = contam_dir / "keep.reads"
-    contam = contam_dir / "contaminant.reads"
-    unmapped = contam_dir / "unmapped.reads"
-
-    n_keep = sum(1 for _ in open(to_keep))
-    n_contam = sum(1 for _ in open(contam))
-    n_unmapped = sum(1 for _ in open(unmapped))
-
-    return n_keep, n_contam, n_unmapped
 
 
 @main_cli.command()

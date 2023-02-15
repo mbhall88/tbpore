@@ -156,6 +156,128 @@ class TestExternalToolsExecution:
             )
 
     @patch.object(ExternalTool, ExternalTool._run_core.__name__)
+    def test_whole_execution___minimum_params___check_mapping_stats_added(
+        self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
+    ):
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile = td / "in.fq"
+            with open(infile, "w") as fp:
+                fp.write("@r1\nACGT\n+$$$%\n")
+
+            stats_report = Path(f"{td}/in.subsampled.stats.txt")
+            contam_dir = Path(f"{td}/{TMP_NAME}/in.decontaminated.filter")
+            contam_dir.mkdir(parents=True, exist_ok=True)
+            n_keep = 10000
+            with open(contam_dir / "keep.reads", "w") as fp:
+                for _ in range(n_keep):
+                    print("foo", file=fp)
+
+            n_contam = 412
+            with open(contam_dir / "contaminant.reads", "w") as fp:
+                for _ in range(n_contam):
+                    print("foo", file=fp)
+
+            n_unmapped = 22
+            with open(contam_dir / "unmapped.reads", "w") as fp:
+                for _ in range(n_unmapped):
+                    print("foo", file=fp)
+
+            original_stats = """Nanoq Read Summary
+====================
+
+Number of reads:      158583
+Number of bases:      191101235
+N50 read length:      1615
+Longest read:         45649
+Shortest read:        76
+Mean read length:     1205
+Median read length:   833
+Mean read quality:    11.66
+Median read quality:  11.95
+
+
+Read length thresholds (bp)
+
+> 200       158158            99.7%
+> 500       122965            77.5%
+> 1000      64833             40.9%
+> 2000      22688             14.3%
+> 5000      2603              01.6%
+> 10000     325               00.2%
+> 30000     2                 00.0%
+> 50000     0                 00.0%
+> 100000    0                 00.0%
+> 1000000   0                 00.0%
+
+
+Read quality thresholds (Q)
+
+> 5   158506        100.0%
+> 7   154884        97.7%
+> 10  116393        73.4%
+> 12  77982         49.2%
+> 15  10451         06.6%
+> 20  20            00.0%
+> 25  0             00.0%
+> 30  0             00.0%
+"""
+            stats_report.write_text(original_stats)
+
+            opts = ["process", str(infile), "-o", str(td)]
+            result = runner.invoke(main_cli, opts)
+
+            # check tbpore ran fine
+            assert result.exit_code == 0
+
+            expected_stats = """Nanoq Read Summary
+====================
+
+Number of reads:      158583
+Num. MTB reads:       10000 (95.84%)
+Num. contam. reads:   412 (3.95%)
+Num. unmapped reads:  22 (0.21%)
+Number of bases:      191101235
+N50 read length:      1615
+Longest read:         45649
+Shortest read:        76
+Mean read length:     1205
+Median read length:   833
+Mean read quality:    11.66
+Median read quality:  11.95
+
+
+Read length thresholds (bp)
+
+> 200       158158            99.7%
+> 500       122965            77.5%
+> 1000      64833             40.9%
+> 2000      22688             14.3%
+> 5000      2603              01.6%
+> 10000     325               00.2%
+> 30000     2                 00.0%
+> 50000     0                 00.0%
+> 100000    0                 00.0%
+> 1000000   0                 00.0%
+
+
+Read quality thresholds (Q)
+
+> 5   158506        100.0%
+> 7   154884        97.7%
+> 10  116393        73.4%
+> 12  77982         49.2%
+> 15  10451         06.6%
+> 20  20            00.0%
+> 25  0             00.0%
+> 30  0             00.0%
+""".strip()
+            actual_stats = stats_report.read_text().strip()
+
+            assert actual_stats == expected_stats
+
+    @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___several_params_affecting_tools_command_lines___check_all_external_tools_are_called_correctly(
         self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
     ):

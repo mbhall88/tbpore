@@ -6,7 +6,7 @@ import re
 import shutil
 import urllib.request
 from pathlib import Path
-from typing import IO, Any, Dict, Set, Union
+from typing import IO, Any, Dict, Set, Tuple, Union
 
 FASTQ_REGEX = re.compile(r"\.f(ast)?q(\.gz)?$")
 PathLike = Union[str, Path]
@@ -100,3 +100,15 @@ def decompress_file(
 
     if remove_compressed:
         compressed_file.unlink(missing_ok=True)
+
+
+def count_read_mapping_categories(contam_dir: Path) -> Tuple[int, int, int]:
+    to_keep = contam_dir / "keep.reads"
+    contam = contam_dir / "contaminant.reads"
+    unmapped = contam_dir / "unmapped.reads"
+
+    n_keep = sum(1 for _ in open(to_keep))
+    n_contam = sum(1 for _ in open(contam))
+    n_unmapped = sum(1 for _ in open(unmapped))
+
+    return n_keep, n_contam, n_unmapped
