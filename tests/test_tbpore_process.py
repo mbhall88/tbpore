@@ -40,7 +40,7 @@ class TestExternalToolsExecution:
             result = runner.invoke(main_cli, opts)
 
             # check tbpore ran fine
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.stderr
 
             # ensure all tools were called in the correct order and with the correct parameters
             assert run_core_mock.call_count == 15
@@ -181,7 +181,7 @@ class TestExternalToolsExecution:
             result = runner.invoke(main_cli, opts)
 
             # check tbpore ran fine
-            assert result.exit_code == 0
+            assert result.exit_code == 0, result.stderr
 
             # ensure all tools were called in the correct order and with the correct parameters
             assert run_core_mock.call_count == 15

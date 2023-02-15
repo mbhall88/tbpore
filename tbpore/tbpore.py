@@ -1,3 +1,4 @@
+import fileinput
 import functools
 import gzip
 import shutil
@@ -450,11 +451,43 @@ def process(
     )
     ExternalTool.run_tools(tools_to_run, ctx)
 
+    if Path(stats_report).exists():
+        n_keep_reads, n_contam_reads, n_unmapped_reads = count_read_mapping_categories(
+            filter_contamination_dir
+        )
+        n_reads = sum([n_keep_reads, n_contam_reads, n_unmapped_reads])
+
+        with fileinput.FileInput(files=[stats_report], inplace=True) as fp:
+            for line in fp:
+                print(line, end="")
+                if line.startswith("Number of reads:"):
+                    print(
+                        f"Num. MTB reads:       {n_keep_reads} ({n_keep_reads/n_reads:.2%})"
+                    )
+                    print(
+                        f"Num. contam. reads:   {n_contam_reads} ({n_contam_reads/n_reads:.2%})"
+                    )
+                    print(
+                        f"Num. unmapped reads:  {n_unmapped_reads} ({n_unmapped_reads/n_reads:.2%})"
+                    )
+
     if cleanup:
         logger.info("Cleaning up temporary files...")
         shutil.rmtree(tmp)
 
     logger.success("Done")
+
+
+def count_read_mapping_categories(contam_dir: Path) -> Tuple[int, int, int]:
+    to_keep = contam_dir / "keep.reads"
+    contam = contam_dir / "contaminant.reads"
+    unmapped = contam_dir / "unmapped.reads"
+
+    n_keep = sum(1 for _ in open(to_keep))
+    n_contam = sum(1 for _ in open(contam))
+    n_unmapped = sum(1 for _ in open(unmapped))
+
+    return n_keep, n_contam, n_unmapped
 
 
 @main_cli.command()
