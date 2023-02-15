@@ -7,6 +7,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Added
+
+- Stats from mapping to the decontamination database are now added to the stats report
+
 ## [0.5.0]
 
 ### Added
