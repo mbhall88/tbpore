@@ -1,3 +1,4 @@
+import fileinput
 import functools
 import gzip
 import shutil
@@ -25,6 +26,7 @@ from tbpore.clustering import produce_clusters
 from tbpore.external_tools import ExternalTool
 from tbpore.utils import (
     concatenate_fastqs,
+    count_read_mapping_categories,
     decompress_file,
     download_file,
     fastq_prefix,
@@ -449,6 +451,26 @@ def process(
         generate_consensus,
     )
     ExternalTool.run_tools(tools_to_run, ctx)
+
+    if Path(stats_report).exists():
+        n_keep_reads, n_contam_reads, n_unmapped_reads = count_read_mapping_categories(
+            filter_contamination_dir
+        )
+        n_reads = sum([n_keep_reads, n_contam_reads, n_unmapped_reads])
+
+        with fileinput.FileInput(files=[stats_report], inplace=True) as fp:
+            for line in fp:
+                print(line, end="")
+                if line.startswith("Number of reads:"):
+                    print(
+                        f"Num. MTB reads:       {n_keep_reads} ({n_keep_reads/n_reads:.2%})"
+                    )
+                    print(
+                        f"Num. contam. reads:   {n_contam_reads} ({n_contam_reads/n_reads:.2%})"
+                    )
+                    print(
+                        f"Num. unmapped reads:  {n_unmapped_reads} ({n_unmapped_reads/n_reads:.2%})"
+                    )
 
     if cleanup:
         logger.info("Cleaning up temporary files...")
