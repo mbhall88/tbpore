@@ -100,7 +100,7 @@ class TestExternalToolsExecution:
             nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert (
                 nanoq_cl
-                == f"nanoq -vv -s -r {td}/in.subsampled.stats.txt -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
+                == f"nanoq -vv -s -r {td}/in.stats.txt -i {td}/{TMP_NAME}/in.subsampled.fastq.gz"
             )
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 8)
@@ -156,6 +156,129 @@ class TestExternalToolsExecution:
             )
 
     @patch.object(ExternalTool, ExternalTool._run_core.__name__)
+    def test_whole_execution___minimum_params___check_coverage_zero_disables_subsampling(
+        self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
+    ):
+        runner = CliRunner()
+        with runner.isolated_filesystem(temp_dir=tmp_path) as td:
+            td = Path(td)
+            infile = td / "in.fq"
+            with open(infile, "w") as fp:
+                fp.write("@r1\nACGT\n+$$$%\n")
+            opts = ["process", str(infile), "-o", str(td), "--coverage", "0"]
+            result = runner.invoke(main_cli, opts)
+
+            # check tbpore ran fine
+            assert result.exit_code == 0, result.stderr
+
+            # ensure all tools were called in the correct order and with the correct parameters
+            assert run_core_mock.call_count == 14
+
+            map_decontamination_db_cl = self.get_command_line_from_mock(
+                run_core_mock, 0
+            )
+            assert (
+                map_decontamination_db_cl
+                == f"minimap2 -aL2 -x map-ont -t 1 -o {td}/{TMP_NAME}/in.decontaminated.sam {DECONTAMINATION_DB_INDEX} {td}/{TMP_NAME}/in.fq.gz"
+            )
+
+            sort_decontaminated_sam_cl = self.get_command_line_from_mock(
+                run_core_mock, 1
+            )
+            assert (
+                sort_decontaminated_sam_cl
+                == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.decontaminated.sorted.bam {td}/{TMP_NAME}/in.decontaminated.sam"
+            )
+
+            index_sorted_decontaminated_bam_cl = self.get_command_line_from_mock(
+                run_core_mock, 2
+            )
+            assert (
+                index_sorted_decontaminated_bam_cl
+                == f"samtools index -@ 1 {td}/{TMP_NAME}/in.decontaminated.sorted.bam"
+            )
+
+            filter_contamination_cl = self.get_command_line_from_mock(run_core_mock, 3)
+            assert (
+                filter_contamination_cl
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/filter_contamination.py --verbose --ignore-secondary -o {td}/{TMP_NAME}/in.decontaminated.filter -i {td}/{TMP_NAME}/in.decontaminated.sorted.bam -m {DECONTAMINATION_DB_METADATA}"
+            )
+
+            extract_decontaminated_nanopore_reads_cl = self.get_command_line_from_mock(
+                run_core_mock, 4
+            )
+            assert (
+                extract_decontaminated_nanopore_reads_cl
+                == f"seqkit grep -o {td}/{TMP_NAME}/in.decontaminated.fastq.gz -f {td}/{TMP_NAME}/in.decontaminated.filter/keep.reads {td}/{TMP_NAME}/in.fq.gz"
+            )
+
+            sort_decontaminated_reads_cl = self.get_command_line_from_mock(
+                run_core_mock, 5
+            )
+            assert (
+                sort_decontaminated_reads_cl
+                == f"seqkit sort -o {td}/{TMP_NAME}/in.sorted.fastq.gz {td}/{TMP_NAME}/in.decontaminated.fastq.gz"
+            )
+
+            nanoq_cl = self.get_command_line_from_mock(run_core_mock, 6)
+            assert (
+                nanoq_cl
+                == f"nanoq -vv -s -r {td}/in.stats.txt -i {td}/{TMP_NAME}/in.sorted.fastq.gz"
+            )
+
+            mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 7)
+            assert (
+                mykrobe_cl
+                == f"mykrobe predict --sample in -t 1 --tmp {td}/{TMP_NAME} --skeleton_dir {CACHE_DIR} --ont "
+                f"--format json --min_proportion_expected_depth 0.20 --species tb "
+                f"-m 2048MB -o {td}/in.mykrobe.json -i {td}/{TMP_NAME}/in.sorted.fastq.gz"
+            )
+
+            minimap2_cl = self.get_command_line_from_mock(run_core_mock, 8)
+            assert (
+                minimap2_cl
+                == f"minimap2 -t 1 -a -L --sam-hit-only --secondary=no -x map-ont -o {td}/{TMP_NAME}/in.sam "
+                f"{H37RV_genome} {td}/{TMP_NAME}/in.sorted.fastq.gz"
+            )
+
+            samtools_sort_cl = self.get_command_line_from_mock(run_core_mock, 9)
+            assert (
+                samtools_sort_cl
+                == f"samtools sort -@ 1 -o {td}/{TMP_NAME}/in.sorted.sam {td}/{TMP_NAME}/in.sam"
+            )
+
+            bcftools_mpileup_cl = self.get_command_line_from_mock(run_core_mock, 10)
+            assert (
+                bcftools_mpileup_cl
+                == f"bcftools mpileup -f {H37RV_genome} --threads 1 -x -I -Q 13 "
+                f"-a INFO/SCR,FORMAT/SP,INFO/ADR,INFO/ADF -h100 -M10000 -o {td}/{TMP_NAME}/in.pileup.vcf "
+                f"{td}/{TMP_NAME}/in.sorted.sam"
+            )
+
+            bcftools_call_cl = self.get_command_line_from_mock(run_core_mock, 11)
+            assert (
+                bcftools_call_cl
+                == f"bcftools call --threads 1 --ploidy 1 -V indels -m -o {td}/{TMP_NAME}/in.snps.vcf "
+                f"{td}/{TMP_NAME}/in.pileup.vcf"
+            )
+
+            filter_vcf_cl = self.get_command_line_from_mock(run_core_mock, 12)
+            assert (
+                filter_vcf_cl
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/apply_filters.py -P --verbose --overwrite -d 5 -D 0 "
+                f"-q 25 -s 1 -b 0 -m 0 -r 0 -V 1e-05 -G 0 -K 0.9 -M 30 -x 0.2 "
+                f"-o {td}/in.snps.filtered.bcf -i {td}/{TMP_NAME}/in.snps.vcf"
+            )
+
+            generate_consensus_cl = self.get_command_line_from_mock(run_core_mock, 13)
+            assert (
+                generate_consensus_cl
+                == f"{sys.executable} {EXTERNAL_SCRIPTS_DIR}/consensus.py --sample-id in --verbose --ignore all "
+                f"--het-default none -o {td}/in.consensus.fa -i {td}/in.snps.filtered.bcf "
+                f"-f {H37RV_genome} -m {H37RV_mask}"
+            )
+
+    @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___minimum_params___check_mapping_stats_added(
         self, run_core_mock, ensure_decontamination_db_is_available_mock, tmp_path
     ):
@@ -166,7 +289,7 @@ class TestExternalToolsExecution:
             with open(infile, "w") as fp:
                 fp.write("@r1\nACGT\n+$$$%\n")
 
-            stats_report = Path(f"{td}/in.subsampled.stats.txt")
+            stats_report = Path(f"{td}/in.stats.txt")
             contam_dir = Path(f"{td}/{TMP_NAME}/in.decontaminated.filter")
             contam_dir.mkdir(parents=True, exist_ok=True)
             n_keep = 10000
@@ -275,7 +398,7 @@ Read quality thresholds (Q)
 """.strip()
             actual_stats = stats_report.read_text().strip()
 
-            assert actual_stats == expected_stats
+            assert actual_stats == expected_stats, print(actual_stats)
 
     @patch.object(ExternalTool, ExternalTool._run_core.__name__)
     def test_whole_execution___several_params_affecting_tools_command_lines___check_all_external_tools_are_called_correctly(
@@ -364,7 +487,7 @@ Read quality thresholds (Q)
             nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
             assert (
                 nanoq_cl
-                == f"nanoq -vv -s -r {td}/custom_name.subsampled.stats.txt -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
+                == f"nanoq -vv -s -r {td}/custom_name.stats.txt -i {td}/custom_tmp/custom_name.subsampled.fastq.gz"
             )
 
             mykrobe_cl = self.get_command_line_from_mock(run_core_mock, 8)

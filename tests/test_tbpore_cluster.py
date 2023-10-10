@@ -64,7 +64,7 @@ class TestClusterCLI:
             psdm_matrix = td / TMP_NAME / "psdm.matrix.csv"
             assert (
                 psdm_cl
-                == f"psdm --ignore-case --quiet --sort -t 1 -o {psdm_matrix} {td}/{TMP_NAME}/all_sequences.fq.gz"
+                == f"psdm --ignore-case --quiet --sort -t 1 -o {psdm_matrix} {td}/{TMP_NAME}/all_sequences.fa.gz"
             )
 
             threshold = 6
@@ -107,7 +107,7 @@ class TestClusterCLI:
             psdm_matrix = td / "custom_tmp/psdm.matrix.csv"
             assert (
                 psdm_cl
-                == f"psdm --ignore-case --quiet --sort -t 101 -o {psdm_matrix} {td}/custom_tmp/all_sequences.fq.gz"
+                == f"psdm --ignore-case --quiet --sort -t 101 -o {psdm_matrix} {td}/custom_tmp/all_sequences.fa.gz"
             )
 
             threshold = 500

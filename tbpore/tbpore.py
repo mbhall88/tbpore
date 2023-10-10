@@ -233,6 +233,13 @@ def main_cli(
     default=DECONTAMINATION_DB_METADATA,
     show_default=True,
 )
+@click.option(
+    "-c",
+    "--coverage",
+    help="Depth of coverage to subsample to. Use 0 to disable",
+    type=int,
+    default=150,
+)
 @common_opts
 @click.argument("inputs", type=click.Path(exists=True, path_type=Path), nargs=-1)
 @click.pass_context
@@ -249,6 +256,7 @@ def process(
     db: Path,
     metadata: Path,
     cache: Path,
+    coverage: int,
 ):
     """Single-sample TB genomic analysis from Nanopore sequencing data
 
@@ -344,16 +352,19 @@ def process(
         logdir=logdir,
     )
 
-    subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
-    rasusa = ExternalTool(
-        tool="rasusa",
-        input=f"-i {sorted_fastq}",
-        output=f"-o {subsampled_reads}",
-        params=config["rasusa"]["params"],
-        logdir=logdir,
-    )
+    if coverage > 0:
+        subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
+        rasusa = ExternalTool(
+            tool="rasusa",
+            input=f"-i {sorted_fastq}",
+            output=f"-o {subsampled_reads}",
+            params=f'-c {coverage} {config["rasusa"]["params"]}',
+            logdir=logdir,
+        )
+    else:
+        subsampled_reads = sorted_fastq
 
-    stats_report = f"{outdir}/{name}.subsampled.stats.txt"
+    stats_report = f"{outdir}/{name}.stats.txt"
     nanoq = ExternalTool(
         tool="nanoq",
         input=f"-i {subsampled_reads}",
@@ -373,7 +384,11 @@ def process(
         logdir=logdir,
     )
 
-    sam_file = f"{tmp}/{name}.subsampled.sam"
+    if coverage > 0:
+        sam_file = f"{tmp}/{name}.subsampled.sam"
+    else:
+        sam_file = f"{tmp}/{name}.sam"
+
     minimap = ExternalTool(
         tool="minimap2",
         input=f"{H37RV_genome} {subsampled_reads}",
@@ -382,7 +397,11 @@ def process(
         logdir=logdir,
     )
 
-    sorted_sam_file = f"{tmp}/{name}.subsampled.sorted.sam"
+    if coverage > 0:
+        sorted_sam_file = f"{tmp}/{name}.subsampled.sorted.sam"
+    else:
+        sorted_sam_file = f"{tmp}/{name}.sorted.sam"
+
     samtools_sort = ExternalTool(
         tool="samtools",
         input=sam_file,
@@ -433,22 +452,28 @@ def process(
         logdir=logdir,
     )
 
-    tools_to_run = (
+    tools_to_run = [
         map_decontamination_db,
         sort_decontaminated_sam,
         index_sorted_decontaminated_bam,
         filter_contamination,
         extract_decontaminated_nanopore_reads,
         sort_decontaminated_reads,
-        rasusa,
-        nanoq,
-        mykrobe,
-        minimap,
-        samtools_sort,
-        bcftools_mpileup,
-        bcftools_call,
-        filter_vcf,
-        generate_consensus,
+    ]
+    if coverage > 0:
+        tools_to_run.append(rasusa)
+
+    tools_to_run.extend(
+        [
+            nanoq,
+            mykrobe,
+            minimap,
+            samtools_sort,
+            bcftools_mpileup,
+            bcftools_call,
+            filter_vcf,
+            generate_consensus,
+        ]
     )
     ExternalTool.run_tools(tools_to_run, ctx)
 
@@ -519,7 +544,7 @@ def cluster(
 
     tmp, logdir = setup_dirs(outdir, tmp, cache)
 
-    infile = tmp / "all_sequences.fq.gz"
+    infile = tmp / "all_sequences.fa.gz"
     concatenate_inputs_into_infile(inputs, infile, False, ctx)
 
     psdm_matrix = tmp / "psdm.matrix.csv"
