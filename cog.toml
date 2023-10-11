@@ -1,5 +1,4 @@
 branch_whitelist = [ "main", "release/**" ]
-skip_ci = "[skip-ci]"
 pre_bump_hooks = [
   "poetry version {{version}}"
 ]
