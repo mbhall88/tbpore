@@ -194,12 +194,14 @@ Options:
   -A, --report_all_mykrobe_calls  Report all mykrobe calls (turn on flag -A,
                                   --report_all_calls when calling mykrobe)
   --db PATH                       Path to the decontaminaton database
-                                  [default: ${HOME}/.tbpore/decontamination_db/
-                                  remove_contam.map-ont.mmi]
+                                  [default: /home/mihall/.tbpore/decontaminati
+                                  on_db/remove_contam.map-ont.mmi]
   -m, --metadata PATH             Path to the decontaminaton database metadata
-                                  file  [default: /Users/michaelhall/Projects/
-                                  tbpore/data/decontamination_db/remove_contam
-                                  .tsv.gz]
+                                  file  [default: /data/scratch/projects/punim
+                                  1703/tmp/outliers/tbpore/data/decontaminatio
+                                  n_db/remove_contam.tsv.gz]
+  -c, --coverage INTEGER          Depth of coverage to subsample to. Use 0 to
+                                  disable
   -o, --outdir DIRECTORY          Directory to place output files  [default:
                                   .]
   --tmp DIRECTORY                 Specify where to write all (tbpore)
@@ -210,7 +212,7 @@ Options:
                                   Remove all temporary files on *successful*
                                   completion  [default: no-cleanup]
   --cache DIRECTORY               Path to use for the cache  [default:
-                                  /Users/michaelhall/.cache]
+                                  /home/mihall/.cache]
 ```
 
 ### cluster
