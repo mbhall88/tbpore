@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0](https://github.com/mbhall88/tbpore/compare/0.6.0...v0.7.0) (2023-10-11)
+
+
+### Features
+
+* expose parameter for subsampling [[#53](https://github.com/mbhall88/tbpore/issues/53)] ([3d0411e](https://github.com/mbhall88/tbpore/commit/3d0411e42897521d81a851cf70a4ee40a84db1ab))
+
 ## [unreleased]
 
 ## [0.6.0]
