@@ -18,13 +18,3 @@ jobs:
           release-type: python
           package-name: tbpore
           include-v-in-tag: false
-
-      - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
-
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v1.17
-        if: ${{ steps.release.outputs.release_created }}
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
-          ignore_dev_requirements: "yes"
