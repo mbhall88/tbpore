@@ -6,6 +6,20 @@ env:
   TERM: screen-256color
 
 jobs:
+  cog_check_job:
+    runs-on: ubuntu-latest
+    name: check conventional commit compliance
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          # pick the pr HEAD instead of the merge commitonly if it's a PR, otherwise use the default
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Conventional commit check
+        uses: cocogitto/cocogitto-action@v3
+        with:
+          check-latest-tag-only: true
   test:
     runs-on: ${{ matrix.os }}
     strategy:
