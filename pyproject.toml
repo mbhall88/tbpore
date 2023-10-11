@@ -27,7 +27,7 @@ cyvcf2 = "^0.30"
 loguru = "^0.5.3"
 pyyaml = ">=6.0"
 pandas = "^1.4.2"
-pysam = "^0.17"
+pysam = "<1.0"
 networkx = "^2.8"
 
 [tool.poetry.dev-dependencies]
