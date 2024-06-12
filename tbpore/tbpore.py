@@ -356,9 +356,9 @@ def process(
         subsampled_reads = f"{tmp}/{name}.subsampled.fastq.gz"
         rasusa = ExternalTool(
             tool="rasusa",
-            input=f"-i {sorted_fastq}",
+            input=f"{sorted_fastq}",
             output=f"-o {subsampled_reads}",
-            params=f'-c {coverage} {config["rasusa"]["params"]}',
+            params=f'reads -c {coverage} {config["rasusa"]["params"]}',
             logdir=logdir,
         )
     else:
