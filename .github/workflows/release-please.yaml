@@ -18,3 +18,4 @@ jobs:
           release-type: python
           package-name: tbpore
           include-v-in-tag: false
+          token: ${{ secrets.PAT }}
