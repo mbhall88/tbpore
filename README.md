@@ -13,14 +13,28 @@
 
 # Table of Contents
 
-- [Synopsis](#synopsis)
-- [Citation](#citation)
-- [Installation](#installation)
-- [Configuring the decontamination database index](#configuring-the-decontamination-database-index)
-- [Performance](#performance)
-- [Usage](#usage)
+- [TBpore](#tbpore)
+- [Table of Contents](#table-of-contents)
+  - [Synopsis](#synopsis)
+  - [Citation](#citation)
+  - [Installation](#installation)
+    - [conda](#conda)
+    - [pip](#pip)
+      - [Dependencies](#dependencies)
+    - [Container](#container)
+      - [`singularity`](#singularity)
+      - [`docker`](#docker)
+  - [Configuring the decontamination database index](#configuring-the-decontamination-database-index)
+  - [Performance](#performance)
+    - [`tbpore process`](#tbpore-process)
+    - [`tbpore cluster`](#tbpore-cluster)
+  - [Usage](#usage)
+    - [General usage](#general-usage)
+    - [process](#process)
+    - [cluster](#cluster)
+    - [download](#download)
 
-# Synopsis
+## Synopsis
 
 `tbpore` is a tool with two main goals.
 First is to process Nanopore Mycobacterium tuberculosis sequencing data to describe
@@ -75,7 +89,7 @@ installed through PyPI.
 
 #### Dependencies
 
-* [`rasusa`](https://github.com/mbhall88/rasusa)
+* [`rasusa`](https://github.com/mbhall88/rasusa) version 2.x
 * [`psdm`](https://github.com/mbhall88/psdm) version 0.1.x
 * [`samtools`](https://github.com/samtools/samtools) version 1.13
 * [`bcftools`](https://github.com/samtools/bcftools) version 1.13

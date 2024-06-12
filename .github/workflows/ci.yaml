@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: check conventional commit compliance
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           # pick the pr HEAD instead of the merge commitonly if it's a PR, otherwise use the default
@@ -27,7 +27,7 @@ jobs:
         python-version: [ 3.8 ]
         os: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
@@ -52,7 +52,7 @@ jobs:
         shell: bash -l {0}
         run: just test-ci
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           flags: unittests

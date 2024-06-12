@@ -9,7 +9,7 @@ dependencies:
   - ripgrep
   - poetry=1.3
   - mykrobe=0.12
-  - rasusa
+  - "rasusa>=2.0,<3.0"
   - nanoq=0.9
   - samtools=1.13
   - bcftools=1.13

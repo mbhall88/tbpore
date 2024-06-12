@@ -1,4 +1,5 @@
 """Integration tests"""
+
 import gzip
 import subprocess
 import sys
@@ -94,7 +95,7 @@ class TestExternalToolsExecution:
             rasusa_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 rasusa_cl
-                == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz -i {td}/{TMP_NAME}/in.sorted.fastq.gz"
+                == f"rasusa reads -c 150 -g 4411532 -s 88 -o {td}/{TMP_NAME}/in.subsampled.fastq.gz {td}/{TMP_NAME}/in.sorted.fastq.gz"
             )
 
             nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
@@ -480,8 +481,8 @@ Read quality thresholds (Q)
             rasusa_cl = self.get_command_line_from_mock(run_core_mock, 6)
             assert (
                 rasusa_cl
-                == f"rasusa -c 150 -g 4411532 -s 88 -o {td}/custom_tmp/custom_name.subsampled.fastq.gz "
-                f"-i {td}/custom_tmp/custom_name.sorted.fastq.gz"
+                == f"rasusa reads -c 150 -g 4411532 -s 88 -o {td}/custom_tmp/custom_name.subsampled.fastq.gz "
+                f"{td}/custom_tmp/custom_name.sorted.fastq.gz"
             )
 
             nanoq_cl = self.get_command_line_from_mock(run_core_mock, 7)
